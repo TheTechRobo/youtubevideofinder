@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<style>
+#contenu {
+  position: absolute;
+  left: 50%;
+  top: 40%;
+  -webkit-transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%);
+}
+#data {
+  position: absolute;
+  left: 49%;
+  top: 60%;
+  -webkit-transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%);
+}
+input {
+  padding-top: 50px;
+  padding-bottom: 50px;
+  width: 740px;
+  /*padding-left: 275px;
+    padding-right: 275px;*/
+  display: inline;
+  border-radius: 10px;
+  border: 1px solid grey;
+}
+button {
+  max-height: 150px;
+  max-width: 150px;
+  position: absolute;
+  top: 0;
+  left: 81%;
+  padding-top: 41px;
+  padding-bottom: 41px;
+  border: 1px solid black;
+}
+
+:focus {
+  border: 1px solid cyan;
+}
+.grn {
+  color: green;
+  background-color: black;
+}
+.red {
+  color: red;
+  background-color: black;
+}
+</style>
+    <script>
+      function finish(vid) {
+              let url = "{{ url_for('static', filename='ab79a231234507.564a1d23814ef.gif') }}";
+        let src = "https://www.behance.net/gallery/31234507/Open-source-Loading-GIF-Icons-Vol-1/modules/199929391";
+              document.getElementById("data").innerHTML = `<img src="${url}" width="25" height="25" /> Loading could take up to 30 seconds.`;
+        fetch(`find/${vid}`)
+          .then((response) => response.json())
+          .then((data) => {
+            let write = "<ul>";
+            let keys = ["wbm", "ia", "ghostarchive", "ya"]
+            keys.forEach((key) => {
+              let wbm = data[key];
+              let archived = wbm.archived ? "<span class='grn'>Archived</span>" : "<span class='red'>Not Archived</span>";
+              let lien = wbm.available?`<a href="${wbm.available}">(link)</a>`:""
+              write += `<li><b>${wbm.name}:</b> ${archived} ${lien}<br>`
+              write += `${wbm.note}</li>`;
+
+            });
+            let elm = document.getElementById("data");
+            elm.innerHTML = write;
+            document.getElementById("but").innerHTML = "Search for Captures";
+          })
+          .catch((e) => {
+              document.getElementById("data").innerHTML = '<span class="red" style="background-color: #FFFFFF;">An error occured.</span>';
+              throw (e);
+          });
+        }
+      function finishWrpa(data) {
+              try {
+                return finish(data);
+              }
+              catch {
+                document.getElementById("data").innerHTML = "<span class='red'>An error occured.</span>";
+              }
+      }
+    </script>
+  </head>
+  <body>
+    <noscript>
+<style>
+.contenu, .data {
+  display: none;
+}
+</style>
+  This website requires JavaScript to function correctly.
+  <br>
+  I am sorry for any inconvenience this causes you.
+    </noscript>
+    <div id="contenu">
+      <input type="text" id="texting" placeholder="Enter video ID here..."/>
+      <button id="but" class="btn btn-primary" onclick="finishWrpa(document.getElementById('texting').value)">Search for Captures</button>
+    </div>
+    <div id="data">
+      <i>website created by TheTechRobo</i>
+    </div>
+  </body>
+</html>
