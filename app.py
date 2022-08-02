@@ -12,6 +12,7 @@ async def find(id):
             "ya": yairc(id),
             "wbm": wbm(id),
             "ia": iai(id),
+            "filmot": filmot(id),
             "ghostarchive": ghostget(id)
     }
 

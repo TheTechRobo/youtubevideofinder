@@ -16,6 +16,20 @@ def ghostget(vid):
     GCACHE[vid] = ret
     return ret
 
+FILNOTE = "Filmot only provides metadata, not the actual video."
+FILNAME = "Filmot (metadata only)"
+FILCACHE= {}
+def filmot(vid):
+    if FILCACHE.get(vid) and time.time() - FILCACHE[vid]["lastupdated"] < 10:
+        return FILCACHE[vid]
+    key = config.filmot.key
+    res = requests.get(f"https://filmot.com/api/getvideos?key={key}&id={vid}")
+    data = res.json()
+    archived = bool(data)
+    ret = {"archived": archived, "suppl": None, "rawraw": res.text, "lastupdated": time.time(), "note": FILNOTE, "name": FILNAME, "available": False}
+    FILCACHE[vid] = ret
+    return ret
+
 YACACHE = {}
 YANOTE  = "To retrieve a video from #youtubearchive, join #youtubearchive on hackint IRC and ask for help. Remember <a href='https://wiki.archiveteam.org/index.php/Archiveteam:IRC#How_do_I_chat_on_IRC?'>IRC etiquette</a>!"
 YANAME  = "#youtubearchive"

@@ -60,7 +60,7 @@ button {
           .then((response) => response.json())
           .then((data) => {
             let write = "<ul>";
-            let keys = ["wbm", "ia", "ghostarchive", "ya"]
+            let keys = ["wbm", "ia", "ghostarchive", "ya", "filmot"]
             keys.forEach((key) => {
               let wbm = data[key];
               let archived = wbm.archived ? "<span class='grn'>Archived</span>" : "<span class='red'>Not Archived</span>";
