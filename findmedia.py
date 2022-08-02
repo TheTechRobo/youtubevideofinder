@@ -19,11 +19,18 @@ def ghostget(vid):
 FILNOTE = "Filmot only provides metadata, not the actual video."
 FILNAME = "Filmot (metadata only)"
 FILCACHE= {}
+FILDEL  = 1
+FILAST  = 0
 def filmot(vid):
-    if FILCACHE.get(vid) and time.time() - FILCACHE[vid]["lastupdated"] < 10:
+    global FILAST
+    if FILCACHE.get(vid) and time.time() - FILCACHE[vid]["lastupdated"] < 20:
         return FILCACHE[vid]
+    while time.time() - FILAST <= 2:
+        print("Waiting...")
+        time.sleep(0.1)
     key = config.filmot.key
     res = requests.get(f"https://filmot.com/api/getvideos?key={key}&id={vid}")
+    FILAST = time.time()
     data = res.json()
     archived = bool(data)
     ret = {"archived": archived, "suppl": None, "rawraw": res.text, "lastupdated": time.time(), "note": FILNOTE, "name": FILNAME, "available": False}
