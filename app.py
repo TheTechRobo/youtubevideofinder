@@ -13,7 +13,8 @@ async def find(id):
             "wbm": wbm(id),
             "ia": iai(id),
             "filmot": filmot(id),
-            "ghostarchive": ghostget(id)
+            "ghostarchive": ghostget(id),
+            "keys": ["wbm", "ia", "ghostarchive", "ya", "filmot"]
     }
 
 @app.route("/")
