@@ -7,7 +7,7 @@ app = Flask(__name__)
 
 try:
     config.ccen
-except NameError:
+except AttributeError:
     config.ccen = False
     config.ccod = "a"
 
