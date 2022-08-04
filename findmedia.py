@@ -32,7 +32,7 @@ def filmot(vid):
     FILAST = time.time()
     data = res.json()
     archived = bool(data)
-    ret = {"archived": archived, "suppl": None, "rawraw": res.text, "lastupdated": time.time(), "note": FILNOTE, "name": FILNAME, "available": False}
+    ret = {"capcount": 1 if archived else 0, "archived": archived, "suppl": None, "rawraw": res.text, "lastupdated": time.time(), "note": FILNOTE, "name": FILNAME, "available": False}
     FILCACHE[vid] = ret
     return ret
 

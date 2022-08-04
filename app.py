@@ -5,6 +5,23 @@ from findmedia import *
 
 app = Flask(__name__)
 
+try:
+    config.ccen
+except NameError:
+    config.ccen = False
+    config.ccod = "a"
+
+#@app.route(f"/cc/{config.ccod}")
+async def cc():
+    global GCACHE, FILCACHE, YACACHE, WBMCACHE, IACACHE
+    GCACHE = {}
+    FILCACHE = {}
+    YACACHE = {}
+    WBMCACHE = {}
+    IACACHE = {}
+    abort(404)
+
+
 @app.route("/find/<id>")
 async def find(id):
     if not re.match(r"^[A-Za-z0-9_-]{10}[AEIMQUYcgkosw048]$", id):
@@ -24,6 +41,10 @@ async def find(id):
 @app.route("/")
 async def ui():
     return render_template("init.html")
+
+@app.route("/api")
+async def api():
+    return render_template("api.html", fields={"id": "The interpreted video ID.", "status": "bad.id if invalid ID.", "keys": "Array of all the service keys."}, services={"archived": "Whether the video is archived or not.", "available": "A link to the archived material if it can be produced; False otherwise.", "capcount": "The number of captures; on everything except #youtubearchive, it is 1 if archived, 0 if not. In the case of #youtubearchive, it is the count reported by the server.", "lastupdated": "The timestamp the data was retrieved from the server. Used internally to expire cache entries.", "name": "The name of the service. Used in the UI.", "note": "A footnote about the service. This could be different depending on conditions. For example, the Internet Archive has an extra passage if the item is dark.", "rawraw": "The data used to check whether the video is archived on that particular service. For example, for GhostArchive, it would be the HTTP status code.", "suppl": "Supplemental error message. Not used and currently inconsistent with what it returns and when."})
 
 @app.route("/nojs")
 async def formsubmit():
