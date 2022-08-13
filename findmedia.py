@@ -12,12 +12,12 @@ def ghostget(vid):
     lien = f"https://ghostarchive.org/varchive/{vid}"
     response = requests.get(lien)
     archived = response.status_code == 200
-    ret = {"capcount": 1 if archived else 0, "archived": archived, "rawraw": response.status_code, "suppl": None, "lastupdated": time.time(), "note": GNOTE, "name": GNAME, "available": lien if archived else None, "metaonly": False}
+    ret = {"capcount": 1 if archived else 0, "archived": archived, "rawraw": response.status_code, "suppl": None, "lastupdated": time.time(), "note": GNOTE, "name": GNAME, "available": lien if archived else None, "metaonly": False, "comments": False}
     GCACHE[vid] = ret
     return ret
 
-FILNOTE = "Filmot only provides metadata, not the actual video."
-FILNAME = "Filmot (metadata only)"
+FILNOTE = ""
+FILNAME = "Filmot"
 FILCACHE= {}
 FILDEL  = 2
 FILAST  = 0
@@ -32,7 +32,7 @@ def filmot(vid):
     FILAST = time.time()
     data = res.json()
     archived = bool(data)
-    ret = {"capcount": 1 if archived else 0, "archived": archived, "suppl": None, "rawraw": res.text, "lastupdated": time.time(), "note": FILNOTE, "name": FILNAME, "available": False, "metaonly": False}
+    ret = {"capcount": 1 if archived else 0, "archived": archived, "suppl": None, "rawraw": res.text, "lastupdated": time.time(), "note": FILNOTE, "name": FILNAME, "available": False, "metaonly": True, "comments": False}
     FILCACHE[vid] = ret
     return ret
 
@@ -82,7 +82,7 @@ def wbm(vid):
             archived = True
             ismeta = True
             lien = response2["archived_snapshots"]["closest"]["url"]
-    ret = {"capcount": 1 if archived else 0, "archived": archived, "rawraw": (response.headers.get("location"), response2), "suppl": "NOIMPL", "available": lien, "lastupdated": time.time(), "name": WBMNAME, "note": WBMNOTE, "metaonly": ismeta}
+    ret = {"capcount": 1 if archived else 0, "archived": archived, "rawraw": (response.headers.get("location"), response2), "suppl": "NOIMPL", "available": lien, "lastupdated": time.time(), "name": WBMNAME, "note": WBMNOTE, "metaonly": ismeta, "comments": False}
     WBMCACHE[vid] = ret
     return ret
 
@@ -103,6 +103,6 @@ def iai(vid):
     if data.get("is_dark"):
         capcount = 0
         IANOT = "This item is currently unavailable to the general public.<br>"  + IANOTE
-    ret = {"capcount": capcount, "archived": True, "rawraw": data, "lastupdated": time.time(), "name": IANAME, "note": IANOT, "available": lien, "metaonly": False}
+    ret = {"capcount": capcount, "archived": True, "rawraw": data, "lastupdated": time.time(), "name": IANAME, "note": IANOT, "available": lien, "metaonly": False, "comments": False}
     IACACHE[vid] = ret
     return ret
