@@ -1,150 +1,93 @@
 <!DOCTYPE html>
 <html>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <head>
-    <title>YouTube Video Archives</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-<style>
-#contenu {
-  position: absolute;
-  left: 50%;
-  top: 40%;
-  -webkit-transform: translate(-50%, -50%);
-  transform: translate(-50%, -50%);
-}
-#data {
-  position: absolute;
-  left: 49%;
-  top: 70%;
-  -webkit-transform: translate(-50%, -50%);
-  transform: translate(-50%, -50%);
-}
-input {
-  padding-top: 50px;
-  padding-bottom: 50px;
-  width: 740px;
-  /*padding-left: 275px;
-    padding-right: 275px;*/
-  display: inline;
-  border-radius: 10px;
-  border: 1px solid grey;
-}
-button {
-  max-height: 150px;
-  max-width: 150px;
-  position: absolute;
-  top: 0;
-  left: 81%;
-  padding-top: 41px;
-  padding-bottom: 41px;
-  border: 1px solid black;
-}
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<head>
+		<title>YouTube Video Archives</title>
+		<style>#contenu,#data,button{position:absolute}.grn,.red{background-color:#000}#contenu{left:50%;top:40%;-webkit-transform:translate(-50%,-50%);transform:translate(-50%,-50%)}#data{left:49%;top:70%;-webkit-transform:translate(-50%,-50%);transform:translate(-50%,-50%)}input{padding-top:50px;padding-bottom:50px;width:740px;display:inline;border-radius:10px;border:1px solid grey}button{max-height:150px;max-width:150px;top:0;left:81%;padding-top:41px;padding-bottom:41px;border:1px solid #000}:focus{border:1px solid #0ff}.grn{color:green}.red{color:red}</style>
+		<script>
+		function coerceToVid(vid) {
+			// Regexes here are based on the ones from https://github.com/mattwright324/youtube-metadata/blob/master/js/shared.js#L8-L14
+			let patterns = [
+				/(?:https?:\/\/)?(?:\w+\.)?youtube\.com\/watch\/?\?v=([A-Za-z0-9_-]{10}[AEIMQUYcgkosw048])(?:[\/&].*)?/i,
+				/(?:https?:\/\/)?(?:\w+\.)?youtube.com\/(?:v|embed|shorts|video)\/([A-Za-z0-9_-]{10}[AEIMQUYcgkosw048])(?:[\/&].*)?/i,
+				/(?:https?:\/\/)?youtu.be\/([A-Za-z0-9_-]{10}[AEIMQUYcgkosw048])(?:\?.*)?/i,
+				/(?:https?:\/\/)?filmot.com\/video\/([A-Za-z0-9_-]{10}[AEIMQUYcgkosw048])(?:\?.*)?/i,
+			]
+			for (i = 0; i < patterns.length; i++) {
+				let pattern = patterns[i];
+				let newVid = vid.replace(pattern, function(match, newVid) {
+					return newVid;
+				});
+				if (newVid.match(/^[A-Za-z0-9_-]{10}[AEIMQUYcgkosw048]$/)) {
+					return newVid;
+				}
+			}
+			return false;
+		}
 
-:focus {
-  border: 1px solid cyan;
-}
-.grn {
-  color: green;
-  background-color: black;
-}
-.red {
-  color: red;
-  background-color: black;
-}
-</style>
-    <script>
-      function coerceToVid(vid) {
-        // Regexes here are based on the ones from https://github.com/mattwright324/youtube-metadata/blob/master/js/shared.js#L8-L14
-        let patterns = [
-          /(?:https?:\/\/)?(?:\w+\.)?youtube\.com\/watch\/?\?v=([A-Za-z0-9_-]{10}[AEIMQUYcgkosw048])(?:[\/&].*)?/i,
-          /(?:https?:\/\/)?(?:\w+\.)?youtube.com\/(?:v|embed|shorts|video)\/([A-Za-z0-9_-]{10}[AEIMQUYcgkosw048])(?:[\/&].*)?/i,
-          /(?:https?:\/\/)?youtu.be\/([A-Za-z0-9_-]{10}[AEIMQUYcgkosw048])(?:\?.*)?/i,
-          /(?:https?:\/\/)?filmot.com\/video\/([A-Za-z0-9_-]{10}[AEIMQUYcgkosw048])(?:\?.*)?/i,
-        ]
-        for (i=0; i<patterns.length; i++) {
-          let pattern = patterns[i];
-          let newVid = vid.replace(pattern, function(match, newVid) {
-            return newVid;
-          });
-          if (newVid.match(/^[A-Za-z0-9_-]{10}[AEIMQUYcgkosw048]$/)) {
-            return newVid;
-          }
-        }
-        return false;
-      }
-      function finish(vid1) {
-        document.getElementById("int").innerHTML = ""
-        var vid = vid1;
-        if (!vid.match(/^[A-Za-z0-9_-]{10}[AEIMQUYcgkosw048]$/)) {
-          let newVid = coerceToVid(vid);
-          console.log(newVid);
-          if (!newVid) {
-            document.getElementById("data").innerHTML = `<span style="color:red;">That doesn't look like a valid video ID.</span>`;
-            return false;
-          }
-          document.getElementById("int").innerHTML = `<br>Interpreting that URL as video ID ${newVid}`;
-          document.getElementById("texting").value = vid1;
-          vid = newVid;
-        }
-        let url = "{{ url_for('static', filename='ab79a231234507.564a1d23814ef.gif') }}";
-        let src = "https://www.behance.net/gallery/31234507/Open-source-Loading-GIF-Icons-Vol-1/modules/199929391";
-        document.getElementById("data").innerHTML = `<img src="${url}" width="25" height="25" /> Loading could take up to 30 seconds.`;
-        fetch(`find/${vid}`)
-          .then((response) => response.json())
-          .then((data) => {
-            let write = "<ul>";
-            let keys = data.keys;
-            keys.forEach((key) => {
-              let wbm = data[key];
-              let archived = wbm.archived ? "<span class='grn'>Archived</span>" : "<span class='red'>Not Archived</span>";
-              let metaonly = wbm.metaonly ? " (metadata only) " : " ";
-              let comments = wbm.comments ? " (incl. comments) ": " ";
-              let lien = wbm.available?`<a href="${wbm.available}">(link)</a>`:""
-              write += `<li><b>${wbm.name}:</b> ${archived}${metaonly}${comments}${lien}<br>`
-              write += `${wbm.note}</li>`;
+		function finish(vid1) {
+			document.getElementById("int").innerHTML = ""
+			var vid = vid1;
+			if (!vid.match(/^[A-Za-z0-9_-]{10}[AEIMQUYcgkosw048]$/)) {
+				let newVid = coerceToVid(vid);
+				console.log(newVid);
+				if (!newVid) {
+					document.getElementById("data").innerHTML = `<span style="color:red;">That doesn't look like a valid video ID.</span>`;
+					return false;
+				}
+				document.getElementById("int").innerHTML = `<br>Interpreting that URL as video ID ${newVid}`;
+				document.getElementById("texting").value = vid1;
+				vid = newVid;
+			}
+			let url = "{{ url_for('static', filename='ab79a231234507.564a1d23814ef.gif') }}";
+			let src = "https://www.behance.net/gallery/31234507/Open-source-Loading-GIF-Icons-Vol-1/modules/199929391";
+			document.getElementById("data").innerHTML = `<img src="${url}" width="25" height="25" /> Loading could take up to 30 seconds.`;
+			fetch(`find/${vid}`)
+				.then((response) => response.json())
+				.then((data) => {
+					let write = "<ul>";
+					let keys = data.keys;
+					keys.forEach((key) => {
+						let wbm = data[key];
+						let archived = wbm.archived ? "<span class='grn'>Archived</span>" : "<span class='red'>Not Archived</span>";
+						let metaonly = wbm.metaonly ? " (metadata only) " : " ";
+						let comments = wbm.comments ? " (incl. comments) " : " ";
+						let lien = wbm.available ? `<a href="${wbm.available}">(link)</a>` : ""
+						write += `<li><b>${wbm.name}:</b> ${archived}${metaonly}${comments}${lien}<br>`
+						write += `${wbm.note}</li>`;
 
-            });
-            let elm = document.getElementById("data");
-            elm.innerHTML = write;
-            document.getElementById("but").innerHTML = "Search for Captures";
-          })
-          .catch((e) => {
-              document.getElementById("data").innerHTML = '<span class="red" style="background-color: #FFFFFF;">An error occured.</span>';
-              throw (e);
-          });
-        }
-      function finishWrpa(data) {
-              try {
-                return finish(data);
-              }
-              catch {
-                document.getElementById("data").innerHTML = "<span class='red'>An error occured.</span>";
-              }
-      }
-    </script>
-  </head>
-  <body>
-    <noscript>
-<style>
-.contenu, .data {
-  display: none;
-}
-</style>
-  This website requires JavaScript to function correctly.
-  <br>
-  I am sorry for any inconvenience this causes you.
-    </noscript>
-    <div id="contenu">
-      <form onsubmit="finishWrpa(document.getElementById('texting').value); return false;">
-        <input type="text" id="texting" placeholder="Enter video ID here..."/>
-        <button action="submit" id="but" class="btn btn-primary">Search for Captures</button>
-      </form>
-      <span id="int"></span>
-    </div>
-    <div id="data">
-      <i>website created by TheTechRobo</i>
-    </div>
-    <a href="https://github.com/TheTechRobo/youtubevideofinder/">Source code (GitHub)</a>
-    <a href="/api" style="float:right;">API documentation</a>
-  </body>
+					});
+					let elm = document.getElementById("data");
+					elm.innerHTML = write;
+					document.getElementById("but").innerHTML = "Search for Captures";
+				})
+				.catch((e) => {
+					document.getElementById("data").innerHTML = '<span class="red" style="background-color: #FFFFFF;">An error occured.</span>';
+					throw (e);
+				});
+		}
+
+		function finishWrpa(data) {
+			try {
+				return finish(data);
+			} catch {
+				document.getElementById("data").innerHTML = "<span class='red'>An error occured.</span>";
+			}
+		}
+		</script>
+	</head>
+	<body>
+		<div id="contenu">
+			<form onsubmit="finishWrpa(document.getElementById('texting').value); return false;">
+				<input type="text" id="texting" placeholder="Enter video ID here..."/>
+				<button action="submit" id="but" class="btn btn-primary">Search for Captures</button>
+			</form>
+			<span id="int"></span>
+		</div>
+		<div id="data">
+			<i>website created by TheTechRobo - fork by nateify</i>
+		</div>
+		<a href="https://github.com/nateify/youtubevideofinder/">Source code (GitHub)</a>
+		<a href="/api" style="float:right">API documentation</a>
+	</body>
 </html>

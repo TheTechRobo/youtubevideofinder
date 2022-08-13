@@ -1,34 +1,29 @@
 <!DOCTYPE html>
 <html>
-  <head>
-<style>
-body {
-  font-family: Ubuntu, Arial, sans-serif;
-}
-</style>
-  </head>
-  <body>
-    <h1>API Documentation</h1>
-    <h3>Call: GET <code>/find/$videoid</code></h3>
-    <p>
-    <b>Fields</b>
-    <br>
-    <dl>
-      {% for field, value in fields.items() %}
-        <dt><code>
-            {{ field }}
-        </code></dt>
-        <dd>{{value}}
-        </dd>
-      {% endfor %}
-    </dl>
-    <b>Service Keys</b>
-    <p>One object for every service searched.</p>
-    <dl>
-      {% for field, value in services.items() %}
-        <dt><code>{{field}}</code></dt>
-        <dd>{{value}}</dd>
-      {%endfor%}
-    </dl>
-  </body>
+	<head>
+		<style>body{font-family:Ubuntu,Arial,sans-serif}</style>
+	</head>
+	<body>
+		<h1>API Documentation</h1>
+		<h3>Call: GET <code>/find/$videoid</code></h3>
+		<h4>Fields</h4>
+		<dl>
+			{% for field, value in fields.items() %}
+			<dt>
+				<code>{{field}}</code>
+			</dt>
+			<dd>{{value}}</dd>
+			{% endfor %}
+		</dl>
+		<h4>Service Keys</h4>
+		<p>One object for every service searched.</p>
+		<dl>
+			{% for field, value in services.items() %}
+			<dt>
+				<code>{{field}}</code>
+			</dt>
+			<dd>{{value}}</dd>
+			{% endfor %}
+		</dl>
+	</body>
 </html>
