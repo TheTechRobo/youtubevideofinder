@@ -1,4 +1,4 @@
-import requests, config
+import requests, config, urllib.parse
 import time
 
 from requests.auth import HTTPBasicAuth
@@ -12,7 +12,7 @@ def ghostget(vid):
     lien = f"https://ghostarchive.org/varchive/{vid}"
     response = requests.get(lien)
     archived = response.status_code == 200
-    ret = {"capcount": 1 if archived else 0, "archived": archived, "rawraw": response.status_code, "suppl": None, "lastupdated": time.time(), "note": GNOTE, "name": GNAME, "available": lien if archived else None}
+    ret = {"capcount": 1 if archived else 0, "archived": archived, "rawraw": response.status_code, "suppl": None, "lastupdated": time.time(), "note": GNOTE, "name": GNAME, "available": lien if archived else None, "metaonly": False}
     GCACHE[vid] = ret
     return ret
 
@@ -32,7 +32,7 @@ def filmot(vid):
     FILAST = time.time()
     data = res.json()
     archived = bool(data)
-    ret = {"capcount": 1 if archived else 0, "archived": archived, "suppl": None, "rawraw": res.text, "lastupdated": time.time(), "note": FILNOTE, "name": FILNAME, "available": False}
+    ret = {"capcount": 1 if archived else 0, "archived": archived, "suppl": None, "rawraw": res.text, "lastupdated": time.time(), "note": FILNOTE, "name": FILNAME, "available": False, "metaonly": False}
     FILCACHE[vid] = ret
     return ret
 
@@ -46,6 +46,11 @@ def yairc(vid):
         return YACACHE[vid]
     auth = HTTPBasicAuth(config.ya.username, config.ya.password)
     data = requests.get("https://ya.borg.xyz/cgi-bin/capture-count?v=" + vid, auth=auth).text
+    comments = False
+    commentcount = requests.get("https://ya.borg.xyz/cgi-bin/capture-comment-counts?v="+vid, auth=auth).text
+    counts = [i for i in commentcount.split("\n") if i.strip("∅\n") and i.strip() != "0"]
+    if counts:
+        comments = True
     supplemental = None
     try:
         count = int(data)
@@ -55,7 +60,7 @@ def yairc(vid):
         supplemental = "BAD_VID"
     archived = bool(count)
     NAHNOTE = YANOTE if archived else ""
-    ret = {"capcount": count, "archived": archived, "rawraw": data, "suppl": supplemental, "lastupdated": time.time(), "name": YANAME, "note": NAHNOTE}
+    ret = {"capcount": count, "archived": archived, "rawraw": (data, commentcount), "suppl": supplemental, "lastupdated": time.time(), "name": YANAME, "note": NAHNOTE, "metaonly": False, "comments": comments}
     YACACHE[vid] = ret
     return ret
 
@@ -67,7 +72,17 @@ def wbm(vid):
         return WBMCACHE[vid]
     response = requests.get(f"https://web.archive.org/web/2oe_/http://wayback-fakeurl.archive.org/yt/{vid}", allow_redirects=False)
     archived = True if response.headers.get("location") else False
-    ret = {"capcount": 1 if archived else 0, "archived": archived, "rawraw": response.headers.get("location"), "suppl": "NOIMPL", "available": response.headers.get("location"), "lastupdated": time.time(), "name": WBMNAME, "note": WBMNOTE}
+    lien = response.headers.get("location")
+    ismeta = False
+    response2 = None
+    if not archived:
+        check = urllib.parse.quote(f"https://youtube.com/watch?v={vid}", safe="") # not exhaustive but...
+        response2 = requests.get(f"https://archive.org/wayback/available?url={check}").json()
+        if response2["archived_snapshots"]:
+            archived = True
+            ismeta = True
+            lien = response2["archived_snapshots"]["closest"]["url"]
+    ret = {"capcount": 1 if archived else 0, "archived": archived, "rawraw": (response.headers.get("location"), response2), "suppl": "NOIMPL", "available": lien, "lastupdated": time.time(), "name": WBMNAME, "note": WBMNOTE, "metaonly": ismeta}
     WBMCACHE[vid] = ret
     return ret
 
@@ -88,6 +103,6 @@ def iai(vid):
     if data.get("is_dark"):
         capcount = 0
         IANOT = "This item is currently unavailable to the general public.<br>"  + IANOTE
-    ret = {"capcount": capcount, "archived": True, "rawraw": data, "lastupdated": time.time(), "name": IANAME, "note": IANOT, "available": lien}
+    ret = {"capcount": capcount, "archived": True, "rawraw": data, "lastupdated": time.time(), "name": IANAME, "note": IANOT, "available": lien, "metaonly": False}
     IACACHE[vid] = ret
     return ret

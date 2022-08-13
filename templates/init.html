@@ -97,8 +97,10 @@ button {
             keys.forEach((key) => {
               let wbm = data[key];
               let archived = wbm.archived ? "<span class='grn'>Archived</span>" : "<span class='red'>Not Archived</span>";
+              let metaonly = wbm.metaonly ? " (metadata only) " : " ";
+              let comments = wbm.comments ? " (incl. comments) ": " ";
               let lien = wbm.available?`<a href="${wbm.available}">(link)</a>`:""
-              write += `<li><b>${wbm.name}:</b> ${archived} ${lien}<br>`
+              write += `<li><b>${wbm.name}:</b> ${archived}${metaonly}${comments}${lien}<br>`
               write += `${wbm.note}</li>`;
 
             });
