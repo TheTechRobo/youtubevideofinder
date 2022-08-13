@@ -97,8 +97,8 @@ button {
             keys.forEach((key) => {
               let wbm = data[key];
               let archived = wbm.archived ? "<span class='grn'>Archived</span>" : "<span class='red'>Not Archived</span>";
-              let metaonly = wbm.metaonly ? " (metadata only) " : " ";
-              let comments = wbm.comments ? " (incl. comments) ": " ";
+              let metaonly = (wbm.metaonly && wbm.archived) ? " (metadata only) " : " ";
+              let comments = (wbm.archived && wbm.comments) ? " (incl. comments) ": " ";
               let lien = wbm.available?`<a href="${wbm.available}">(link)</a>`:""
               write += `<li><b>${wbm.name}:</b> ${archived}${metaonly}${comments}${lien}<br>`
               write += `${wbm.note}</li>`;
@@ -143,6 +143,9 @@ button {
     </div>
     <div id="data">
       <i>website created by TheTechRobo</i>
+    </div>
+    <div id="warning">
+      <b>I take no responsibility for any data loss as a result of incorrect values.</b> Verify the values for any important videos!
     </div>
     <a href="https://github.com/TheTechRobo/youtubevideofinder/">Source code (GitHub)</a>
     <a href="/api" style="float:right;">API documentation</a>
