@@ -7,12 +7,20 @@ GCACHE = {}
 GNOTE  = ""
 GNAME  = "GhostArchive"
 def ghostget(vid):
+    GNOT = GNOTE
     if GCACHE.get(vid) and time.time() - GCACHE[vid]["lastupdated"] < 10:
         return GCACHE[vid]
     lien = f"https://ghostarchive.org/varchive/{vid}"
-    response = requests.get(lien)
-    archived = response.status_code == 200
-    ret = {"capcount": 1 if archived else 0, "archived": archived, "rawraw": response.status_code, "suppl": None, "lastupdated": time.time(), "note": GNOTE, "name": GNAME, "available": lien if archived else None, "metaonly": False, "comments": False}
+    try:
+        response = requests.get(lien, timeout=5)
+    except Exception as ename:
+        GNOT = f"An error occured retrieving data from GhostArchive. ({ename})"
+        archived = False
+        rawraw = {"exception": str(ename), "type": str(type(ename))}
+    else:
+        archived = response.status_code == 200
+        rawraw = response.status_code
+    ret = {"capcount": 1 if archived else 0, "archived": archived, "rawraw": response.status_code, "suppl": None, "lastupdated": time.time(), "note": GNOT, "name": GNAME, "available": lien if archived else None, "metaonly": False, "comments": False}
     GCACHE[vid] = ret
     return ret
 
@@ -27,12 +35,21 @@ def filmot(vid):
         return FILCACHE[vid]
     while time.time() - FILAST <= FILDEL:
         time.sleep(0.1)
-    key = config.filmot.key
-    res = requests.get(f"https://filmot.com/api/getvideos?key={key}&id={vid}")
+    k = config.filmot.key
+    try:
+        res=requests.get(f"https://filmot.com/api/getvideos?key={k}&id={vid}",
+            timeout=5)
+    except Exception as ename:
+        rawraw = {"exception": str(ename), "type": str(type(ename))}
+        data = {}
+        FILNOT = f"An error occured retreiving data from Filmot. ({ename})"
+    else:
+        FILNOT = FILNOTE
+        rawraw = res.text
+        data = res.json()
     FILAST = time.time()
-    data = res.json()
     archived = bool(data)
-    ret = {"capcount": 1 if archived else 0, "archived": archived, "suppl": None, "rawraw": res.text, "lastupdated": time.time(), "note": FILNOTE, "name": FILNAME, "available": False, "metaonly": True, "comments": False}
+    ret = {"capcount": 1 if archived else 0, "archived": archived, "suppl": None, "rawraw": rawraw, "lastupdated": time.time(), "note": FILNOT, "name": FILNAME, "available": False, "metaonly": True, "comments": False}
     FILCACHE[vid] = ret
     return ret
 
@@ -40,15 +57,26 @@ YACACHE = {}
 YANOTE  = "To retrieve a video from #youtubearchive, join #youtubearchive on hackint IRC and ask for help. Remember <a href='https://wiki.archiveteam.org/index.php/Archiveteam:IRC#How_do_I_chat_on_IRC?'>IRC etiquette</a>!"
 YANAME  = "#youtubearchive"
 def yairc(vid):
+    YANOT = YANOTE
     if not config.ya.enabled:
         return {}
     if YACACHE.get(vid) and time.time() - YACACHE[vid]["lastupdated"] < 10:
         return YACACHE[vid]
     auth = HTTPBasicAuth(config.ya.username, config.ya.password)
-    data = requests.get("https://ya.borg.xyz/cgi-bin/capture-count?v=" + vid, auth=auth).text
     comments = False
-    commentcount = requests.get("https://ya.borg.xyz/cgi-bin/capture-comment-counts?v="+vid, auth=auth).text
-    counts = [i for i in commentcount.split("\n") if i.strip("∅\n") and i.strip() != "0"]
+    try:
+        data = requests.get("https://ya.borg.xyz/cgi-bin/capture-count?v=" + vid, auth=auth, timeout=5).text
+        if not data:
+            raise ValueError
+        commentcount = requests.get("https://ya.borg.xyz/cgi-bin/capture-comment-counts?v="+vid, auth=auth).text
+    except Exception as ename:
+        counts = 0
+        rawraw = {"exception": str(ename), "type": str(type(ename))}
+        YANOT = f"An error occured retreiving data from ya.borg.xyz ({ename})"
+    else:
+        data = "0"
+        counts = [i for i in commentcount.split("\n") if i.strip("∅\n") and i.strip() != "0"]
+        rawraw = (data, commentcount)
     if counts:
         comments = True
     supplemental = None
@@ -56,11 +84,9 @@ def yairc(vid):
         count = int(data)
     except ValueError:
         count = 0
-    if not data:
-        supplemental = "BAD_VID"
     archived = bool(count)
-    NAHNOTE = YANOTE if archived else ""
-    ret = {"capcount": count, "archived": archived, "rawraw": (data, commentcount), "suppl": supplemental, "lastupdated": time.time(), "name": YANAME, "note": NAHNOTE, "metaonly": False, "comments": comments}
+    NAHNOTE = YANOT if archived else ""
+    ret = {"capcount": count, "archived": archived, "rawraw": rawraw, "suppl": supplemental, "lastupdated": time.time(), "name": YANAME, "note": NAHNOTE, "metaonly": False, "comments": comments}
     YACACHE[vid] = ret
     return ret
 
@@ -68,21 +94,32 @@ WBMCACHE = {}
 WBMNOTE  = ""
 WBMNAME  = "Wayback Machine"
 def wbm(vid):
+    WBMNOT = ""
     if WBMCACHE.get(vid) and time.time() - WBMCACHE[vid]["lastupdated"] < 6000:
         return WBMCACHE[vid]
-    response = requests.get(f"https://web.archive.org/web/2oe_/http://wayback-fakeurl.archive.org/yt/{vid}", allow_redirects=False)
-    archived = True if response.headers.get("location") else False
-    lien = response.headers.get("location")
+    try:
+        response = requests.get(f"https://web.archive.org/web/2oe_/http://wayback-fakeurl.archive.org/yt/{vid}", allow_redirects=False, timeout=7)
+        archived = True if response.headers.get("location") else False
+        if not archived:
+            check = urllib.parse.quote(f"https://youtube.com/watch?v={vid}", safe="") # not exhaustive but...
+            response2 = requests.get(f"https://archive.org/wayback/available?url={check}").json()
+            if response2["archived_snapshots"]:
+                archived = True
+                ismeta = True
+                lien = response2["archived_snapshots"]["closest"]["url"]
+
+    except Exception as ename:
+        rawraw = {"exception": str(ename), "type": str(type(ename))}
+        WBMNOT = "An error occured retreiving data from the Wayback Machine."
+        archived = False
+        lien = None
+    else:
+        WBMNOT = WBMNOTE
+        rawraw = (response.headers.get("location"), response2)
+        lien = response.headers.get("location")
     ismeta = False
     response2 = None
-    if not archived:
-        check = urllib.parse.quote(f"https://youtube.com/watch?v={vid}", safe="") # not exhaustive but...
-        response2 = requests.get(f"https://archive.org/wayback/available?url={check}").json()
-        if response2["archived_snapshots"]:
-            archived = True
-            ismeta = True
-            lien = response2["archived_snapshots"]["closest"]["url"]
-    ret = {"capcount": 1 if archived else 0, "archived": archived, "rawraw": (response.headers.get("location"), response2), "suppl": "NOIMPL", "available": lien, "lastupdated": time.time(), "name": WBMNAME, "note": WBMNOTE, "metaonly": ismeta, "comments": False}
+    ret = {"capcount": 1 if archived else 0, "archived": archived, "rawraw": rawraw, "suppl": "NOIMPL", "available": lien, "lastupdated": time.time(), "name": WBMNAME, "note": WBMNOTE, "metaonly": ismeta, "comments": False}
     WBMCACHE[vid] = ret
     return ret
 
@@ -92,17 +129,27 @@ IANAME  = "Internet Archive"
 def iai(vid):
     if IACACHE.get(vid) and time.time() - IACACHE[vid]["lastupdated"] < 60:
         return IACACHE[vid]
-    data = requests.get("https://archive.org/metadata/youtube-" + vid).json()
+    try:
+        data = requests.get("https://archive.org/metadata/youtube-" + vid,
+            timeout=7).json()
+    except Exception as ename:
+        rawraw = {"exception": str(ename), "type": str(type(ename))}
+        capcount = 1
+        IANOT = "An error occured retreiving data from IA (%s)" % str(ename)
+        data = {}
+    else:
+        rawraw = data
+        lien = f"https://archive.org/details/youtube-{vid}"
+        IANOT = "" if archived else IANOTE
     if not data:
-        ret = {"capcount": 0, "archived": False, "rawraw": data, "lastupdated": time.time(), "name": IANAME, "note": IANOTE}
+        ret = {"capcount": 0, "archived": False, "rawraw": data, "lastupdated": time.time(), "name": IANAME, "note": IANOT}
         IACACHE[vid] = ret
         return ret
     capcount = 1
-    IANOT = ""
     lien = f"https://archive.org/details/youtube-{vid}"
     if data.get("is_dark"):
         capcount = 0
         IANOT = "This item is currently unavailable to the general public.<br>"  + IANOTE
-    ret = {"capcount": capcount, "archived": True, "rawraw": data, "lastupdated": time.time(), "name": IANAME, "note": IANOT, "available": lien, "metaonly": False, "comments": False}
+    ret = {"capcount": capcount, "archived": True, "rawraw": rawraw, "lastupdated": time.time(), "name": IANAME, "note": IANOT, "available": lien, "metaonly": False, "comments": False}
     IACACHE[vid] = ret
     return ret
