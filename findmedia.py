@@ -132,6 +132,9 @@ def iai(vid):
     try:
         data = requests.get("https://archive.org/metadata/youtube-" + vid,
             timeout=7).json()
+        if not data or data.get("is_dark"):
+            data = requests.get(f"https://archive.org/metadata/{vid}",
+                timeout=7).json()
     except Exception as ename:
         rawraw = {"exception": str(ename), "type": str(type(ename))}
         capcount = 1
@@ -140,6 +143,7 @@ def iai(vid):
     else:
         rawraw = data
         lien = f"https://archive.org/details/youtube-{vid}"
+        archived = bool(data)
         IANOT = "" if archived else IANOTE
     if not data:
         ret = {"capcount": 0, "archived": False, "rawraw": data, "lastupdated": time.time(), "name": IANAME, "note": IANOT}
