@@ -125,17 +125,22 @@ def wbm(vid):
     return ret
 
 IACACHE = {}
-IANOTE  = "Even if it isn't found here, it might still be in the Internet Archive. This site only checks for 'youtube-VIDEOID items."
+IANOTE  = "Even if it isn't found here, it might still be in the Internet Archive. This site only checks for certain item identifiers."
 IANAME  = "Internet Archive"
 def iai(vid):
     if IACACHE.get(vid) and time.time() - IACACHE[vid]["lastupdated"] < 60:
         return IACACHE[vid]
+    item_templates = [
+            "youtube-%s",
+            "youtube_%s",
+            "%s"
+    ]
     try:
-        data = requests.get("https://archive.org/metadata/youtube-" + vid,
-            timeout=7).json()
-        if not data or data.get("is_dark"):
-            data = requests.get(f"https://archive.org/metadata/{vid}",
+        for template in item_templates:
+            data= requests.get(f"https://archive.org/metadata/{template % vid}",
                 timeout=7).json()
+            if data and (not data.get("is_dark")):
+                break
     except Exception as ename:
         rawraw = {"exception": str(ename), "type": str(type(ename))}
         capcount = 1
@@ -145,7 +150,7 @@ def iai(vid):
     else:
         archived = bool(data)
         rawraw = data
-        lien = f"https://archive.org/details/youtube-{vid}"
+        lien = f"https://archive.org/details/{template % vid}"
         archived = bool(data)
         IANOT = "" if archived else IANOTE
     if not data:
@@ -153,7 +158,6 @@ def iai(vid):
         IACACHE[vid] = ret
         return ret
     capcount = 1
-    lien = f"https://archive.org/details/youtube-{vid}"
     if data.get("is_dark"):
         capcount = 0
         IANOT = "This item is currently unavailable to the general public.<br>"  + IANOTE
