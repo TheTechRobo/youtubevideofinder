@@ -72,20 +72,19 @@ def yairc(vid):
     except Exception as ename:
         counts = 0
         rawraw = {"exception": str(ename), "type": str(type(ename))}
-        YANOT = f"An error occured retreiving data from ya.borg.xyz ({ename})"
+        NAHNOTE = f"An error occured retreiving data from ya.borg.xyz ({ename})"
     else:
-        data = "0"
+        try:
+            count = int(data)
+        except ValueError:
+            count = 0
+        archived = bool(count)
+        NAHNOTE = YANOT if archived else ""
         counts = [i for i in commentcount.split("\n") if i.strip("∅\n") and i.strip() != "0"]
         rawraw = (data, commentcount)
     if counts:
         comments = True
     supplemental = None
-    try:
-        count = int(data)
-    except ValueError:
-        count = 0
-    archived = bool(count)
-    NAHNOTE = YANOT if archived else ""
     ret = {"capcount": count, "archived": archived, "rawraw": rawraw, "suppl": supplemental, "lastupdated": time.time(), "name": YANAME, "note": NAHNOTE, "metaonly": False, "comments": comments}
     YACACHE[vid] = ret
     return ret
@@ -94,12 +93,15 @@ WBMCACHE = {}
 WBMNOTE  = ""
 WBMNAME  = "Wayback Machine"
 def wbm(vid):
+    ismeta = False
     WBMNOT = ""
     if WBMCACHE.get(vid) and time.time() - WBMCACHE[vid]["lastupdated"] < 6000:
         return WBMCACHE[vid]
+    lien = f"https://web.archive.org/web/2oe_/http://wayback-fakeurl.archive.org/yt/{vid}"
     try:
-        response = requests.get(f"https://web.archive.org/web/2oe_/http://wayback-fakeurl.archive.org/yt/{vid}", allow_redirects=False, timeout=7)
+        response = requests.get(lien, allow_redirects=False, timeout=7)
         archived = True if response.headers.get("location") else False
+        response2 = None
         if not archived:
             check = urllib.parse.quote(f"https://youtube.com/watch?v={vid}", safe="") # not exhaustive but...
             response2 = requests.get(f"https://archive.org/wayback/available?url={check}").json()
@@ -116,9 +118,8 @@ def wbm(vid):
     else:
         WBMNOT = WBMNOTE
         rawraw = (response.headers.get("location"), response2)
-        lien = response.headers.get("location")
-    ismeta = False
-    response2 = None
+    if not archived:
+        lien = None
     ret = {"capcount": 1 if archived else 0, "archived": archived, "rawraw": rawraw, "suppl": "NOIMPL", "available": lien, "lastupdated": time.time(), "name": WBMNAME, "note": WBMNOTE, "metaonly": ismeta, "comments": False}
     WBMCACHE[vid] = ret
     return ret
@@ -140,7 +141,9 @@ def iai(vid):
         capcount = 1
         IANOT = "An error occured retreiving data from IA (%s)" % str(ename)
         data = {}
+        archived = False
     else:
+        archived = bool(data)
         rawraw = data
         lien = f"https://archive.org/details/youtube-{vid}"
         archived = bool(data)
