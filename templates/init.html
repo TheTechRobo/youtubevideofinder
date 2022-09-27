@@ -50,6 +50,10 @@ button {
   color: red;
   background-color: black;
 }
+.yellow {
+  color: yellow;
+  background-color: black;
+}
 </style>
     <script>
       function coerceToVid(vid) {
@@ -95,7 +99,18 @@ button {
             let keys = data.keys;
             keys.forEach((key) => {
               let wbm = data[key];
-              let archived = wbm.archived ? "<span class='grn'>Archived</span>" : "<span class='red'>Not Archived</span>";
+              var colour;
+              if (wbm.archived && wbm.metaonly) {
+                colour = "yellow";
+              }
+              else if (wbm.archived) {
+                colour = "grn";
+              }
+              else {
+                colour = "red";
+              }
+              let isarchived = wbm.archived ? "Archived" : "Not Archived";
+              let archived = `<span class='${colour}'>${isarchived}</span>`;
               let metaonly = (wbm.metaonly && wbm.archived) ? " (metadata only) " : " ";
               let comments = (wbm.archived && wbm.comments) ? " (incl. comments) ": " ";
               let lien = wbm.available?`<a href="${wbm.available}">(link)</a>`:""
