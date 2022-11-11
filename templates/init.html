@@ -5,6 +5,7 @@
     <title>YouTube Video Archives</title>
     <style>
 #contenu {
+  width: 49%;
   position: absolute;
   left: 50%;
   top: 40%;
@@ -12,18 +13,27 @@
   transform: translate(-50%, -50%);
 }
 #data {
+  width: 30%;
   position: absolute;
   left: 49%;
   top: 70%;
   -webkit-transform: translate(-50%, -50%);
   transform: translate(-50%, -50%);
 }
+
+@media (min-height: 1250px) {
+  #data {
+    top: 40%;
+  }
+  #contenu {
+    top: 20%;
+  }
+}
+
 input {
   padding-top: 50px;
   padding-bottom: 50px;
-  width: 740px;
-  /*padding-left: 275px;
-    padding-right: 275px;*/
+  width: 90%;
   display: inline;
   border-radius: 10px;
   border: 1px solid grey;
@@ -42,7 +52,7 @@ button {
 :focus {
   border: 1px solid cyan;
 }
-.grn {
+.green {
   color: green;
   background-color: black;
 }
@@ -104,7 +114,7 @@ button {
                 colour = "yellow";
               }
               else if (wbm.archived) {
-                colour = "grn";
+                colour = "green";
               }
               else {
                 colour = "red";
@@ -141,6 +151,7 @@ button {
     <noscript>
 <style>
 .contenu, .data {
+  width: 100%;
   display: none;
 }
 </style>
@@ -156,7 +167,7 @@ button {
       <span id="int"></span>
     </div>
     <div id="data">
-      <i>website created by TheTechRobo</i>
+      <p style="text-align: center;"><i>website created by TheTechRobo</i></p>
     </div>
     <div id="warning">
       <b>I take no responsibility for any data loss as a result of incorrect values.</b> Verify the values for any important videos!
