@@ -54,7 +54,7 @@ def filmot(vid):
     return ret
 
 YACACHE = {}
-YANOTE  = "To retrieve a video from #youtubearchive, join #youtubearchive on hackint IRC and ask for help. Remember <a href='https://wiki.archiveteam.org/index.php/Archiveteam:IRC#How_do_I_chat_on_IRC?'>IRC etiquette</a>!"
+YANOTE  = "To retrieve a video from #youtubearchive, join <a href='https://webirc.hackint.org/#irc://irc.hackint.org/youtubearchive'>#youtubearchive</a> on hackint IRC and ask for help. Remember <a href='https://wiki.archiveteam.org/index.php/Archiveteam:IRC#How_do_I_chat_on_IRC?'>IRC etiquette</a>!"
 YANAME  = "#youtubearchive"
 def yairc(vid):
     YANOT = YANOTE
