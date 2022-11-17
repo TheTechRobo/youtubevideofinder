@@ -1,42 +1,15 @@
 import re
+import lostmediafinder
 
 from flask import *
-from findmedia import *
 
 app = Flask(__name__)
-
-try:
-    config.ccen
-except AttributeError:
-    config.ccen = False
-    config.ccod = "a"
-
-#@app.route(f"/cc/{config.ccod}")
-async def cc():
-    global GCACHE, FILCACHE, YACACHE, WBMCACHE, IACACHE
-    GCACHE = {}
-    FILCACHE = {}
-    YACACHE = {}
-    WBMCACHE = {}
-    IACACHE = {}
-    abort(404)
-
 
 @app.route("/find/<id>")
 async def find(id):
     if not re.match(r"^[A-Za-z0-9_-]{10}[AEIMQUYcgkosw048]$", id):
         return {"status": "bad.id", "true": True, "id": None}, 400
-    return {
-            "status": "find.id",
-            "true": True,
-            "id": id,
-            "ya": yairc(id),
-            "wbm": wbm(id),
-            "ia": iai(id),
-            "filmot": filmot(id),
-            "ghostarchive": ghostget(id),
-            "keys": ["wbm", "ia", "ghostarchive", "ya", "filmot"]
-    }
+    return (await lostmediafinder.Response.generateAsync(id)).json()
 
 @app.route("/")
 async def ui():

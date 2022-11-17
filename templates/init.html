@@ -2,7 +2,7 @@
 <html>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <head>
-    <title>YouTube Video Archives</title>
+    <title>YouTube Video Finder</title>
     <style>
 #contenu {
   width: 49%;
@@ -107,8 +107,7 @@ button {
           .then((data) => {
             let write = "<ul>";
             let keys = data.keys;
-            keys.forEach((key) => {
-              let wbm = data[key];
+            keys.forEach((wbm) => {
               var colour;
               if (wbm.archived && wbm.metaonly) {
                 colour = "yellow";
