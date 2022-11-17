@@ -132,7 +132,7 @@ button {
             document.getElementById("but").innerHTML = "Search for Captures";
           })
           .catch((e) => {
-              document.getElementById("data").innerHTML = '<span class="red" style="background-color: #FFFFFF;">An error occured.</span>';
+              document.getElementById("data").innerHTML = '<span class="red" style="background-color: #FFFFFF;">An error has occured.</span>';
               throw (e);
           });
         }
@@ -141,7 +141,7 @@ button {
                 return finish(data);
               }
               catch {
-                document.getElementById("data").innerHTML = "<span class='red'>An error occured.</span>";
+                document.getElementById("data").innerHTML = "<span class='red'>An error has occured.</span>";
               }
       }
     </script>
@@ -166,7 +166,7 @@ button {
       <span id="int"></span>
     </div>
     <div id="data">
-      <p style="text-align: center;"><i>website created by TheTechRobo</i></p>
+      <p style="text-align: center;"><i>website created by <a href="https://thetechrobo.ca">TheTechRobo</a></i></p>
     </div>
     <div id="warning">
       <b>I take no responsibility for any data loss as a result of incorrect values.</b> Verify the values for any important videos!
