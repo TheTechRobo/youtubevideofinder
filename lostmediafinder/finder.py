@@ -66,7 +66,7 @@ class InternetArchive(Service):
         if not archived:
             note = "Even if it isn't found here, it might still be in the Internet Archive. This site only checks for certain item identifiers."
             if is_dark:
-                ianote = "This item is currently unavailable to the general public.<br>"  + IANOTE
+                note = "This item is currently unavailable to the general public.<br>" + note
         capcount = int(archived)
         return cls(
             archived=archived, capcount=capcount, available=lien, lastupdated=time.time(), name=cls.getName(), note=note,
