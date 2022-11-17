@@ -15,21 +15,33 @@ body {
     <b>Fields</b>
     <br>
     <dl>
-      {% for field, value in fields.items() %}
-        <dt><code>
-            {{ field }}
-        </code></dt>
-        <dd>{{value}}
-        </dd>
-      {% endfor %}
+      {% if fields is mapping %}
+        {% for field, value in fields.items() %}
+          <dt><code>
+              {{ field }}
+          </code></dt>
+          <dd>{{value}}
+          </dd>
+        {% endfor %}
+      {% elif fields is string %}
+        {{ fields.strip().replace("\n", "<br>") | safe }}
+      {% else %}
+        Fail
+      {% endif %}
     </dl>
-    <b>Service Keys</b>
+    <b>Service Objects</b>
     <p>One object for every service searched.</p>
-    <dl>
-      {% for field, value in services.items() %}
-        <dt><code>{{field}}</code></dt>
-        <dd>{{value}}</dd>
-      {%endfor%}
-    </dl>
+    {% if services is mapping %}
+      <dl>
+        {% for field, value in services.items() %}
+          <dt><code>{{field}}</code></dt>
+          <dd>{{value}}</dd>
+        {%endfor%}
+      </dl>
+    {% elif services is string %}
+      {{ services.strip().replace("\n", "<br>") | safe }}
+    {% else %}
+      fail
+    {% endif %}
   </body>
 </html>
