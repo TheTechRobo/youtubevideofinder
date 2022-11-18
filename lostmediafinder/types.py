@@ -1,18 +1,22 @@
-from snscrape.base import _JSONDataclass as JSONDataclass
+"""
+The classes that are used to store the response data.
+"""
 
 import asyncio as aio
-import cachetools.func
 import dataclasses
 import time
 import typing
 import re
-import urllib.parse
 
+import cachetools.func
 import nest_asyncio
+
+from snscrape.base import _JSONDataclass as JSONDataclass
+
 nest_asyncio.apply()
 
-
-T = typing.TypeVar("T", bound="Service")
+T = typing.TypeVar("T", bound="Service") # pylint: disable=invalid-name
+# (this name is fine)
 
 @dataclasses.dataclass
 class Service(JSONDataclass):
@@ -45,32 +49,24 @@ class Service(JSONDataclass):
     error: bool = False
 
     @classmethod
-    def _run(cls, id) -> T:
+    def _run(cls, id, includeRaw=True) -> T:
         raise NotImplementedError("Subclass Service and impl the _run function")
 
-    """
-    Do not use this function!
-    """
     @classmethod
-    def Run(cls, id, includeRaw=True) -> T:
+    def __run(cls, id, includeRaw=True) -> T:
         try:
-            return cls._run(id)
-        except Exception as ename:
+            return cls._run(id, includeRaw=includeRaw)
+        except Exception as ename: # pylint: disable=broad-except
             note = f"An error occured while retrieving data from {cls.getName()}."
             print(ename)
+            rawraw = f"{type(ename)}{repr(ename)}" if includeRaw else None
             return cls(
                     archived=False, capcount=0, error=True,
                     lastupdated=time.time(), name=cls.getName(), note=note,
-                    rawraw=str(ename), metaonly=False, comments=False,
+                    rawraw=rawraw, metaonly=False, comments=False,
                     available=None
             )
 
-    """
-    Retrieves the data from the service.
-    Arguments:
-        id (str): The video ID.
-        includeRaw (bool): Whether or not to include the raw data as sent from the service. If you don't need this data, turn this off; it's only the default for compatibility.
-    """
     @classmethod
     # cache has a max of 128 items; items are cached for 600 seconds (10min)
     # important settings:
@@ -78,28 +74,35 @@ class Service(JSONDataclass):
     # might add this to config.py later
     @cachetools.func.ttl_cache
     def run(cls, id: str, includeRaw=True):
-        return cls.Run(id, includeRaw)
+        """
+        Retrieves the data from the service.
+        Arguments:
+            id (str): The video ID.
+            includeRaw (bool): Whether or not to include the raw data as sent from the service. If you don't need this data, turn this off; it's only the default for compatibility.
+        """
+        return cls.__run(id, includeRaw)
 
-    """
-    Runs cls.run(...) but it's async.
-    """
     @classmethod
     async def runAsync(cls, id, includeRaw=True):
+        """
+        Runs cls.run(...) but it's async.
+        This currently still uses blocking networking (requests)!
+        """
         return cls.run(id, includeRaw)
 
-    """
-    Gets the name of the service.
-    """
     @classmethod
     def getName(cls) -> str:
+        """
+        Gets the name of the service.
+        """
         return getattr(cls, "name", cls.__name__)
 
     def __str__(self):
         lien = f"\n  Link: {self.available}" if self.available else ""
-        m = "(metadata only)" if self.metaonly else ""
-        m = m + " (incl. comments)" if self.comments else m
+        meta = "(metadata only)" if self.metaonly else ""
+        meta = meta + " (incl. comments)" if self.comments else meta
         string = f"""- Service Name: {self.name}
-  Archived? {self.archived} {m} {lien}
+  Archived? {self.archived} {meta} {lien}
   \t{self.note.strip()}
 """
         return string
@@ -124,33 +127,32 @@ class Response(JSONDataclass):
     def _get_services(cls):
         return Service.__subclasses__()
 
-    """
-    Runs all the Services.
-    Arguments:
-        id: The video ID
-        asyncio: Whether or not to use asyncio.run_until_complete; this is implied if you use generateAsync
-    """
-    
     @classmethod
     def generate(cls, id, asyncio=False):
+        """
+        Runs all the Services.
+        Arguments:
+            id: The video ID
+            asyncio: Whether or not to use asyncio.run_until_complete; this is implied if you use generateAsync
+        """
         if not re.match(r"^[A-Za-z0-9_-]{10}[AEIMQUYcgkosw048]$", id):
             return cls(status="bad.id", id=id, keys=[])
         keys = []
         services = cls._get_services()
         for subclass in services:
-            data = None
+            result = None
             if asyncio:
-                data = aio.get_event_loop().run_until_complete(subclass.runAsync(id))
+                result = aio.get_event_loop().run_until_complete(subclass.runAsync(id))
             else:
-                data = subclass.run(id)
-            keys.append(data)
+                result = subclass.run(id)
+            keys.append(result)
         return cls(id=id, status="ok", keys=keys)
 
-    """
-    Runs all the Services asynchronously.
-    """
     @classmethod
     async def generateAsync(cls, *args, **kwargs):
+        """
+        Runs all the Services asynchronously.
+        """
         kwargs['asyncio'] = True
         return cls.generate(*args, **kwargs)
 
