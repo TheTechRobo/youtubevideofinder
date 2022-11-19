@@ -4,11 +4,35 @@ The CLI interface of LostMediaFinder.
 
 import sys
 
-def main() -> int:
+import click
+from switch import Switch
+
+from . import Response
+
+@click.command()
+@click.option("--format", default="text", help="Selects which format to output to stdout.", type=click.Choice(["json", "text"]))
+@click.argument("id")
+def main(id: str, format: str) -> int:
     """
-    Parses CLI arguments and returns the Response.
+    Parses CLI arguments and returns the Response for the video ID <IDENT>.
+    
+    Error codes:
+        - 0: All operations (seem) successful.
+        - 1: A fatal error was thrown.
+        - 2: One or more operations failed.
     """
-    print("Using LostMediaFinder from the command-line is not yet supported.")
-    return 255
+    click.echo("\033[1m\033[4m\033[1;31mUsing LostMediaFinder from the command-line is unstable!\033[0m", err=True)
+    click.echo("Generating report, this could take some time...", err=True)
+    response = Response.generate(id)
+    with Switch(format) as case:
+        if case("json"):
+            click.echo(response.json())
+        elif case("text"):
+            click.echo(str(response).strip())
+        else:
+            raise AssertionError("This should never occur!")
+    errors = [item for item in response.keys if item.error]
+    code = 2 if errors else 0
+    return code
 
 sys.exit(main())
