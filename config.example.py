@@ -6,3 +6,4 @@ class ya:
 class filmot:
     key = "fill this in"
 
+config_version = 2

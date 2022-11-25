@@ -9,7 +9,6 @@ import requests
 from requests.auth import HTTPBasicAuth
 from switch import Switch
 
-import config
 from .types import Service, T
 
 class WaybackMachine(Service):
@@ -19,7 +18,7 @@ class WaybackMachine(Service):
     name = "Wayback Machine"
 
     @classmethod
-    def _run(cls, id, includeRaw=True) -> T:
+    def _run(cls, id, includeRaw=True, asynchronous=False) -> T:
         ismeta = False
         lien = f"https://web.archive.org/web/2oe_/http://wayback-fakeurl.archive.org/yt/{id}"
         response = requests.get(lien, allow_redirects=False, timeout=15)
@@ -53,7 +52,7 @@ class InternetArchive(Service):
     ]
 
     @classmethod
-    def _run(cls, id, includeRaw=True) -> T:
+    def _run(cls, id, includeRaw=True, asynchronous=False) -> T:
         responses = []
         is_dark = False
         for template in cls.items_tried:
@@ -84,7 +83,7 @@ class GhostArchive(Service):
     Queries GhostArchive for the video you requested.
     """
     @classmethod
-    def _run(cls, id, includeRaw=True) -> T:
+    def _run(cls, id, includeRaw=True, asynchronous=False) -> T:
         link = f"https://ghostarchive.org/varchive/{id}"
         code = requests.get(link).status_code
         rawraw = code if includeRaw else None
@@ -114,15 +113,12 @@ class Ya(Service):
     note = ("To retrieve a video from #youtubearchive, join #youtubearchive on hackint IRC and ask for help. "
         "Remember <a href='https://wiki.archiveteam.org/index.php/Archiveteam:IRC#How_do_I_chat_on_IRC?'>IRC etiquette</a>!"
     )
-    enabled = config.ya.enabled
-    username = config.ya.username
-    password = config.ya.password
 
     @classmethod
-    def _run(cls, id, includeRaw=True):
+    def _run(cls, id, includeRaw=True, asynchronous=False):
         vid = id
-        assert cls.enabled, "#youtubearchive API access is not enabled"
-        auth = HTTPBasicAuth(cls.username, cls.password)
+        assert cls._getFromConfig("enabled"), "#youtubearchive API access is not enabled"
+        auth = HTTPBasicAuth(cls._getFromConfig("username"), cls._getFromConfig("password"))
         comments = False
         count = requests.get("https://ya.borg.xyz/cgi-bin/capture-count?v=" + vid, auth=auth, timeout=5).text
         if not count:
@@ -141,20 +137,20 @@ class Filmot(Service):
     """
     Queries Filmot for the video you requested.
     """
-    key = config.filmot.key
-    enabled = getattr(config.filmot, "enabled", False)
-
     lastretrieved: int = 0
     cooldown: int = 2
 
     @classmethod
-    def _run(cls, id, includeRaw=True) -> T:
+    def _run(cls, id, includeRaw=True, asynchronous=False) -> T:
+        enabled = cls._getFromConfig("enabled")
+        assert enabled, "Filmot API access is not enabled."
+        key = cls._getFromConfig("key")
         while time.time() - cls.lastretrieved < cls.cooldown:
             time.sleep(0.1)
+        lastupdated = time.time()
         cls.lastretrieved = time.time()
         lastupdated = time.time()
-        assert cls.enabled, "Filmot API access is not enabled."
-        metadata = requests.get(f"https://filmot.com/api/getvideos?key={cls.key}&id={id}&flags=1").json()
+        metadata = requests.get(f"https://filmot.com/api/getvideos?key={key}&id={id}&flags=1").json()
         rawraw = metadata if includeRaw else None
         if len(metadata) > 0: # pylint: disable=simplifiable-if-statement
             archived = True

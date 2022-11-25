@@ -13,6 +13,18 @@ import nest_asyncio
 
 from snscrape.base import _JSONDataclass as JSONDataclass
 
+import config
+def update_cnfig(ya, filmot, version):
+    """
+    Updates the configuration for the #youtubearchive and Filmot services.
+
+    Check lostmediafinder.config for documentation.
+    """
+
+    config.ya = ya
+    config.filmot = filmot
+    config.config_version = version
+
 nest_asyncio.apply()
 
 T = typing.TypeVar("T", bound="Service") # pylint: disable=invalid-name
@@ -48,14 +60,29 @@ class Service(JSONDataclass):
     suppl: str = ""
     error: bool = False
 
+    @staticmethod
+    def _getFromConfig(key):
+        return getattr(config, key)
+
     @classmethod
-    def _run(cls, id, includeRaw=True) -> T:
+    def _run(cls, id, includeRaw=True, asynchronous=False) -> T:
         raise NotImplementedError("Subclass Service and impl the _run function")
 
     @classmethod
-    def __run(cls, id, includeRaw=True) -> T:
+    # cache has a max of 128 items; items are cached for 600 seconds (10min)
+    # important settings:
+    #   maxsize=128, ttl=600
+    # might add this to config.py later
+    @cachetools.func.ttl_cache
+    def run(cls, id: str, includeRaw=True, **kwargs):
+        """
+        Retrieves the data from the service.
+        Arguments:
+            id (str): The video ID.
+            includeRaw (bool): Whether or not to include the raw data as sent from the service. If you don't need this data, turn this off; it's only the default for compatibility.
+        """
         try:
-            return cls._run(id, includeRaw=includeRaw)
+            return cls._run(id, includeRaw=includeRaw, **kwargs)
         except Exception as ename: # pylint: disable=broad-except
             note = f"An error occured while retrieving data from {cls.getName()}."
             print(ename)
@@ -68,27 +95,12 @@ class Service(JSONDataclass):
             )
 
     @classmethod
-    # cache has a max of 128 items; items are cached for 600 seconds (10min)
-    # important settings:
-    #   maxsize=128, ttl=600
-    # might add this to config.py later
-    @cachetools.func.ttl_cache
-    def run(cls, id: str, includeRaw=True):
-        """
-        Retrieves the data from the service.
-        Arguments:
-            id (str): The video ID.
-            includeRaw (bool): Whether or not to include the raw data as sent from the service. If you don't need this data, turn this off; it's only the default for compatibility.
-        """
-        return cls.__run(id, includeRaw)
-
-    @classmethod
     async def runAsync(cls, id, includeRaw=True):
         """
         Runs cls.run(...) but it's async.
         This currently still uses blocking networking (requests)!
         """
-        return cls.run(id, includeRaw)
+        return cls.run(id, includeRaw, asynchronous=True)
 
     @classmethod
     def getName(cls) -> str:
