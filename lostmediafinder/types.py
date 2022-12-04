@@ -61,8 +61,11 @@ class Service(JSONDataclass):
     error: bool = False
 
     @staticmethod
-    def _getFromConfig(key):
-        return getattr(config, key)
+    def _getFromConfig(key, key1=None):
+        val = getattr(config, key)
+        if key1:
+            val = getattr(val, key1)
+        return val
 
     @classmethod
     def _run(cls, id, includeRaw=True, asynchronous=False) -> T:
@@ -142,6 +145,13 @@ class YouTubeResponse(JSONDataclass):
     def _get_services(cls):
         return YouTubeService.__subclasses__()
 
+    @staticmethod
+    def verifyId(id: str) -> bool:
+        """
+        Checks if a video ID is valid.
+        """
+        return bool(re.match(r"^[A-Za-z0-9_-]{10}[AEIMQUYcgkosw048]$", id))
+
     @classmethod
     def generate(cls, id, asyncio=False):
         """
@@ -150,7 +160,7 @@ class YouTubeResponse(JSONDataclass):
             id: The video ID
             asyncio: Whether or not to use asyncio.run_until_complete; this is implied if you use generateAsync
         """
-        if not re.match(r"^[A-Za-z0-9_-]{10}[AEIMQUYcgkosw048]$", id):
+        if not cls.verifyId(id):
             return cls(status="bad.id", id=id, keys=[])
         keys = []
         services = cls._get_services()

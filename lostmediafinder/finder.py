@@ -117,8 +117,8 @@ class Ya(YouTubeService):
     @classmethod
     def _run(cls, id, includeRaw=True, asynchronous=False):
         vid = id
-        assert cls._getFromConfig("enabled"), "#youtubearchive API access is not enabled"
-        auth = HTTPBasicAuth(cls._getFromConfig("username"), cls._getFromConfig("password"))
+        assert cls._getFromConfig("ya", "enabled"), "#youtubearchive API access is not enabled"
+        auth = HTTPBasicAuth(cls._getFromConfig("ya", "username"), cls._getFromConfig("ya", "password"))
         comments = False
         count = requests.get("https://ya.borg.xyz/cgi-bin/capture-count?v=" + vid, auth=auth, timeout=5).text
         if not count:
@@ -142,9 +142,9 @@ class Filmot(YouTubeService):
 
     @classmethod
     def _run(cls, id, includeRaw=True, asynchronous=False) -> T:
-        enabled = cls._getFromConfig("enabled")
+        enabled = cls._getFromConfig("filmot", "enabled")
         assert enabled, "Filmot API access is not enabled."
-        key = cls._getFromConfig("key")
+        key = cls._getFromConfig("filmot", "key")
         while time.time() - cls.lastretrieved < cls.cooldown:
             time.sleep(0.1)
         lastupdated = time.time()

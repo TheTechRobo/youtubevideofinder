@@ -1,5 +1,6 @@
 """
 The CLI interface of LostMediaFinder.
+None of this is public API!
 """
 
 import click
@@ -7,22 +8,28 @@ from switch import Switch
 
 from . import YouTubeResponse
 
-@click.command
-@click.option("--format", default="text", help="Selects which format to output to stdout.", type=click.Choice(["json", "text"]))
-@click.argument("id")
-@click.pass_context
-def main(ctx, id: str, format: str) -> int:
+@click.group(help="CLI tool to search for lost media")
+def main():
     """
-    Parses CLI arguments and returns the Response for the video ID <IDENT>.
-
     Error codes:
         - 0: All operations (seem) successful.
         - 1: A fatal error was thrown.
         - 2: One or more operations failed.
     """
+
+@click.command
+@click.option("--format", default="text", help="Selects which format to output to stdout.", type=click.Choice(["json", "text"]))
+@click.argument("id")
+@click.pass_context
+def youtube(ctx, id: str, format: str) -> int:
+    """
+    Parses CLI arguments and returns the Response for the video ID <IDENT>.
+    """
     click.echo("\033[1m\033[4m\033[1;31mUsing LostMediaFinder from the command-line is unstable!\033[0m", err=True)
     click.echo("Generating report, this could take some time...", err=True)
     response = YouTubeResponse.generate(id)
+    if response.status == "bad.id":
+        raise ValueError("Bad video ID - does not match regex")
     with Switch(format) as case:
         if case("json"):
             click.echo(response.json())
@@ -34,4 +41,5 @@ def main(ctx, id: str, format: str) -> int:
     code = 2 if errors else 0
     ctx.exit(code)
 
+main.add_command(youtube)
 main() # pylint: disable=no-value-for-parameter
