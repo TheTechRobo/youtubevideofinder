@@ -9,9 +9,9 @@ import requests
 from requests.auth import HTTPBasicAuth
 from switch import Switch
 
-from .types import Service, T
+from .types import YouTubeService, T
 
-class WaybackMachine(Service):
+class WaybackMachine(YouTubeService):
     """
     Queries the Wayback Machine for the video you requested.
     """
@@ -40,7 +40,7 @@ class WaybackMachine(Service):
                 note="", metaonly=ismeta, comments=False
         )
 
-class InternetArchive(Service):
+class InternetArchive(YouTubeService):
     """
     Queries the Internet Archive for the video you requested.
     """
@@ -78,7 +78,7 @@ class InternetArchive(Service):
             rawraw=rawraw, metaonly=False, comments=False
         )
 
-class GhostArchive(Service):
+class GhostArchive(YouTubeService):
     """
     Queries GhostArchive for the video you requested.
     """
@@ -105,7 +105,7 @@ class GhostArchive(Service):
             metaonly=False, comments=False
         )
 
-class Ya(Service):
+class Ya(YouTubeService):
     """
     Queries #youtubearchive for the video you requested.
     """
@@ -117,8 +117,8 @@ class Ya(Service):
     @classmethod
     def _run(cls, id, includeRaw=True, asynchronous=False):
         vid = id
-        assert cls._getFromConfig("enabled"), "#youtubearchive API access is not enabled"
-        auth = HTTPBasicAuth(cls._getFromConfig("username"), cls._getFromConfig("password"))
+        assert cls._getFromConfig("ya", "enabled"), "#youtubearchive API access is not enabled"
+        auth = HTTPBasicAuth(cls._getFromConfig("ya", "username"), cls._getFromConfig("ya", "password"))
         comments = False
         count = requests.get("https://ya.borg.xyz/cgi-bin/capture-count?v=" + vid, auth=auth, timeout=5).text
         if not count:
@@ -133,7 +133,7 @@ class Ya(Service):
             note=cls.note if archived else "", rawraw=rawraw, metaonly=False
         )
 
-class Filmot(Service):
+class Filmot(YouTubeService):
     """
     Queries Filmot for the video you requested.
     """
@@ -142,9 +142,9 @@ class Filmot(Service):
 
     @classmethod
     def _run(cls, id, includeRaw=True, asynchronous=False) -> T:
-        enabled = cls._getFromConfig("enabled")
+        enabled = cls._getFromConfig("filmot", "enabled")
         assert enabled, "Filmot API access is not enabled."
-        key = cls._getFromConfig("key")
+        key = cls._getFromConfig("filmot", "key")
         while time.time() - cls.lastretrieved < cls.cooldown:
             time.sleep(0.1)
         lastupdated = time.time()
