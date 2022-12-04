@@ -2,12 +2,10 @@
 The CLI interface of LostMediaFinder.
 """
 
-import sys
-
 import click
 from switch import Switch
 
-from . import Response
+from . import YouTubeResponse
 
 @click.command
 @click.option("--format", default="text", help="Selects which format to output to stdout.", type=click.Choice(["json", "text"]))
@@ -24,7 +22,7 @@ def main(ctx, id: str, format: str) -> int:
     """
     click.echo("\033[1m\033[4m\033[1;31mUsing LostMediaFinder from the command-line is unstable!\033[0m", err=True)
     click.echo("Generating report, this could take some time...", err=True)
-    response = Response.generate(id)
+    response = YouTubeResponse.generate(id)
     with Switch(format) as case:
         if case("json"):
             click.echo(response.json())

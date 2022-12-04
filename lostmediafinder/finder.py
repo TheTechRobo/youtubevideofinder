@@ -9,9 +9,9 @@ import requests
 from requests.auth import HTTPBasicAuth
 from switch import Switch
 
-from .types import Service, T
+from .types import YouTubeService, T
 
-class WaybackMachine(Service):
+class WaybackMachine(YouTubeService):
     """
     Queries the Wayback Machine for the video you requested.
     """
@@ -40,7 +40,7 @@ class WaybackMachine(Service):
                 note="", metaonly=ismeta, comments=False
         )
 
-class InternetArchive(Service):
+class InternetArchive(YouTubeService):
     """
     Queries the Internet Archive for the video you requested.
     """
@@ -78,7 +78,7 @@ class InternetArchive(Service):
             rawraw=rawraw, metaonly=False, comments=False
         )
 
-class GhostArchive(Service):
+class GhostArchive(YouTubeService):
     """
     Queries GhostArchive for the video you requested.
     """
@@ -105,7 +105,7 @@ class GhostArchive(Service):
             metaonly=False, comments=False
         )
 
-class Ya(Service):
+class Ya(YouTubeService):
     """
     Queries #youtubearchive for the video you requested.
     """
@@ -133,7 +133,7 @@ class Ya(Service):
             note=cls.note if archived else "", rawraw=rawraw, metaonly=False
         )
 
-class Filmot(Service):
+class Filmot(YouTubeService):
     """
     Queries Filmot for the video you requested.
     """

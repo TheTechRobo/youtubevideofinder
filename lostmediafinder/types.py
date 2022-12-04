@@ -27,7 +27,7 @@ def update_cnfig(ya, filmot, version):
 
 nest_asyncio.apply()
 
-T = typing.TypeVar("T", bound="Service") # pylint: disable=invalid-name
+T = typing.TypeVar("T", bound="YouTubeService") # pylint: disable=invalid-name
 # (this name is fine)
 
 @dataclasses.dataclass
@@ -119,25 +119,28 @@ class Service(JSONDataclass):
 """
         return string
 
+class YouTubeService(Service): # pylint: disable=abstract-method
+    pass
+
 @dataclasses.dataclass
-class Response(JSONDataclass):
+class YouTubeResponse(JSONDataclass):
     """
     A response from the server.
 
     Attributes:
         id (str): The interpreted video ID.
         status (str): bad.id if invalid ID.
-        keys (list[Service]): An array with all the server responses. THIS IS DIFFERENT THAN BEFORE! Before, this would be an array of strings. You'd use the strings as keys. Now, this array has the data directly!
+        keys (list[YouTubeService]): An array with all the server responses. THIS IS DIFFERENT THAN BEFORE! Before, this would be an array of strings. You'd use the strings as keys. Now, this array has the data directly!
         api_version (int): The API version. Currently set to %s. Breaking API changes are made by incrementing this. There may be a way to request a specific version in the future.
     """
     id: str
     status: str
-    keys: list[Service]
+    keys: list[YouTubeService]
     api_version: int = 2
 
     @classmethod
     def _get_services(cls):
-        return Service.__subclasses__()
+        return YouTubeService.__subclasses__()
 
     @classmethod
     def generate(cls, id, asyncio=False):
@@ -176,5 +179,8 @@ class Response(JSONDataclass):
 {services}"""
         return string
 
-Response.__doc__ = Response.__doc__.replace("%s", str(Response.api_version))
-        
+# TODO: Refactor Response a lot into a more generic thing,
+# then make YouTubeResponse the same thing but specifying the keys
+# and also specifying the subclasses to search
+
+YouTubeResponse.__doc__ = YouTubeResponse.__doc__.replace("%s", str(YouTubeResponse.api_version))
