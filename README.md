@@ -16,7 +16,7 @@ There is an included Dockerfile that should work 100% fine.
   
 If it doesn't work that is considered a bug, as it is the only supported method of running the site.
 
-Instead of modiying the gunicorn config, use `GUNICORN_<VARIABLE_NAME>`; the config is setup to work with that. For example `GUNICORN_WORKERS`
+Instead of modiying the gunicorn config, use `GUNICORN_<VARIABLE_NAME>` environment variables; the config is setup to work with that. For example `GUNICORN_WORKERS`
 
 ## Licence
 
