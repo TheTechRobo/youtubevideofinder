@@ -102,9 +102,22 @@ button {
         let url = "{{ url_for('static', filename='ab79a231234507.564a1d23814ef.gif') }}";
         let src = "https://www.behance.net/gallery/31234507/Open-source-Loading-GIF-Icons-Vol-1/modules/199929391";
         document.getElementById("data").innerHTML = `<img src="${url}" width="25" height="25" /> Loading could take up to 30 seconds.`;
-        fetch(`find/${vid}`)
-          .then((response) => response.json())
+        fetch(`api/v2/youtube/${vid}`)
+                .then((response) => {
+                        if (response.status == 410 || response.status == 404) {
+                                document.getElementById("data").innerHTML = `<span style="color: red;">api version is not supported - this should never happen</span>`;
+                                return null;
+                        }
+                        if (response.status == 500) {
+                          document.getElementById("data").innerHTML = `<span style="color: red;">internal server error - this is not your fault, please try again</span>`;
+                          return null;
+                        }
+                        return response.json();
+                      })
           .then((data) => {
+                  if (data === null) {
+                    return;
+                  }
             let write = "<ul>";
             let keys = data.keys;
             keys.forEach((wbm) => {
@@ -132,7 +145,7 @@ button {
             document.getElementById("but").innerHTML = "Search for Captures";
           })
           .catch((e) => {
-              document.getElementById("data").innerHTML = '<span class="red" style="background-color: #FFFFFF;">An error has occured.</span>';
+              document.getElementById("data").innerHTML = '<span class="red" style="background-color: #FFFFFF;">an error occured - check your internet connection</span>';
               throw (e);
           });
         }
@@ -141,7 +154,7 @@ button {
                 return finish(data);
               }
               catch {
-                document.getElementById("data").innerHTML = "<span class='red'>An error has occured.</span>";
+                document.getElementById("data").innerHTML = "<span class='red'>this code should be unreachable - please report this issue and provide a way to reproduce</span>";
               }
       }
     </script>
