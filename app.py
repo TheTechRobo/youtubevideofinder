@@ -1,20 +1,28 @@
-import re
-import lostmediafinder
+from flask import Flask, render_template
 
-from flask import Flask, render_template, request, abort
+import lostmediafinder
 
 app = Flask(__name__)
 
 @app.route("/find/<id>")
 async def youtubev2(id):
-    return (await lostmediafinder.YouTubeResponse.generateAsync(id)).json()
+    """
+    Provides backwards compatibility for the old endpoint.
+    """
+    return (await lostmediafinder.YouTubeResponse.generateAsync(id)).coerce_to_api_version(2).json()
 
 async def wrapperYT(id):
+    """
+    Wrapper for generateAsync
+    """
     return await lostmediafinder.YouTubeResponse.generateAsync(id)
 
 @app.route("/api/v<int:v>/<site>/<id>")
 @app.route("/api/v<int:v>/<id>")
 async def youtube(v, id, site="youtube"):
+    """
+    Wrapper around lostmediafinder
+    """
     if v == 1:
         return "This API version is no longer supported.", 410
     if v not in (2, 3):
@@ -25,9 +33,15 @@ async def youtube(v, id, site="youtube"):
 
 @app.route("/")
 async def index():
+    """
+    Shows the landing page
+    """
     return render_template("init.html")
 
-def parseChangelog(changelog):
+def parse_changelog(changelog):
+    """
+    Parses a changelog out of a lostmediafinder docstring
+    """
     parsed = {}
     for i in changelog.split("API VERSION "):
         restOfLine = i.split("\n")[0]
@@ -37,6 +51,9 @@ def parseChangelog(changelog):
 
 @app.route("/api")
 async def api():
+    """
+    API docs
+    """
     responseDocstring = lostmediafinder.YouTubeResponse.__doc__
     serviceDocstring = lostmediafinder.Service.__doc__
     changelog = [{}, {}]
@@ -45,9 +62,9 @@ async def api():
     responseDocstring = rChangelog[0]
     serviceDocstring = sChangelog[0]
     if len(rChangelog) > 1:
-        changelog[0] = parseChangelog(rChangelog[1].strip())
+        changelog[0] = parse_changelog(rChangelog[1].strip())
     if len(sChangelog) > 1:
-        changelog[1] = parseChangelog(sChangelog[1].strip())
+        changelog[1] = parse_changelog(sChangelog[1].strip())
     # TODO: Parse that
     # This works fine for now tho
     return render_template("api.html", fields=responseDocstring, services=serviceDocstring, changelog=changelog)
