@@ -46,6 +46,10 @@ class Service(JSONDataclass):
         rawraw (Any): The data used to check whether the video is archived on that particular service. For example, for GhostArchive, it would be the HTTP status code.
         metaonly (bool): True if only the metadata is archived. This value should not be relied on!
         comments (bool): True if the comments are archived. This value should not be relied on!
+
+        =Changelog=
+        API VERSION 2 -> 3:
+            - The `error` attribute is now no longer a boolean; it contains an error message if an error occured and null if no error occured
     """
     archived: bool
     capcount: int
@@ -58,7 +62,7 @@ class Service(JSONDataclass):
 
     available: typing.Optional[str] = None
     suppl: str = ""
-    error: bool = False
+    error: bool = None
 
     @staticmethod
     def _getFromConfig(key, key1=None):
@@ -89,11 +93,11 @@ class Service(JSONDataclass):
         except Exception as ename: # pylint: disable=broad-except
             note = f"An error occured while retrieving data from {cls.getName()}."
             print(ename)
-            rawraw = f"{type(ename)}{repr(ename)}" if includeRaw else None
+            rawraw = f"{type(ename)}: {repr(ename)}"
             return cls(
-                    archived=False, capcount=0, error=True,
+                    archived=False, capcount=0, error=rawraw,
                     lastupdated=time.time(), name=cls.getName(), note=note,
-                    rawraw=rawraw, metaonly=False, comments=False,
+                    rawraw=None, metaonly=False, comments=False,
                     available=None
             )
 
@@ -139,7 +143,47 @@ class YouTubeResponse(JSONDataclass):
     id: str
     status: str
     keys: list[YouTubeService]
-    api_version: int = 2
+    api_version: int = 3
+
+    def coerce_to_api_version(self, target):
+        """
+        Downgrades the API version to one of your choice, then returns self.
+        PLEASE NOTE! While it returns the coerced response, it itself is also downgraded.
+        So:
+            >>> original_response = Response(...)
+            >>> original_response.api_version
+            3
+            >>> coerced = original_response.coerce_to_api_version(2)
+            >>> coerced.api_version
+            2
+            >>> original_response.api_version
+            2
+
+        Arguments:
+            target (int): The target API version. Must be lower than self.api_version
+        """
+        currentApiVersion = self.api_version
+        if currentApiVersion < target:
+            raise ValueError("cannot upgrade api version")
+        while self.api_version != target:
+            fname = f"_convert_v{self.api_version}_to_v{self.api_version-1}"
+            if not hasattr(self, fname):
+                raise ValueError("cannot downgrade any further")
+            getattr(self, fname)()
+        assert self.api_version == target
+        return self
+
+    def _convert_v3_to_v2(self):
+        assert self.api_version == 3
+        self.api_version = 2
+        for index, service in enumerate(self.keys):
+            if service.error is None:
+                service.error = False
+            else:
+                service.rawraw = service.error
+                service.error = True
+            self.keys[index] = service
+        return self
 
     @classmethod
     def _get_services(cls):
