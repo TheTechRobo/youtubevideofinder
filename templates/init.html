@@ -64,6 +64,10 @@ button {
   color: yellow;
   background-color: black;
 }
+.white {
+  color: white;
+  background-color: black;
+}
 </style>
     <script>
       function coerceToVid(vid) {
@@ -102,7 +106,7 @@ button {
         let url = "{{ url_for('static', filename='ab79a231234507.564a1d23814ef.gif') }}";
         let src = "https://www.behance.net/gallery/31234507/Open-source-Loading-GIF-Icons-Vol-1/modules/199929391";
         document.getElementById("data").innerHTML = `<img src="${url}" width="25" height="25" /> Loading could take up to 30 seconds.`;
-        fetch(`api/v2/youtube/${vid}`)
+        fetch(`api/v3/youtube/${vid}`)
                 .then((response) => {
                         if (response.status == 410 || response.status == 404) {
                                 document.getElementById("data").innerHTML = `<span style="color: red;">api version is not supported - this should never happen</span>`;
@@ -122,7 +126,10 @@ button {
             let keys = data.keys;
             keys.forEach((wbm) => {
               var colour;
-              if (wbm.archived && wbm.metaonly) {
+              if (wbm.error) {
+                colour = "white";
+              }
+              else if (wbm.archived && wbm.metaonly) {
                 colour = "yellow";
               }
               else if (wbm.archived) {
@@ -131,7 +138,11 @@ button {
               else {
                 colour = "red";
               }
-              let isarchived = wbm.archived ? "Archived" : "Not Archived";
+              var isarchived = wbm.archived ? "Archived" : "Not Archived";
+              if (wbm.error !== null) {
+                isarchived = "Unknown";
+                wbm.note = wbm.note + wbm.error;
+              }
               let archived = `<span class='${colour}'>${isarchived}</span>`;
               let metaonly = (wbm.metaonly && wbm.archived) ? " (metadata only) " : " ";
               let comments = (wbm.archived && wbm.comments) ? " (incl. comments) ": " ";

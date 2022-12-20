@@ -10,9 +10,25 @@ body {
   <body>
     <p>Please don't spam my servers - anyone that spams too much may be banned. Contact me on Discord (TheTechRobo#7420) or IRC (TheTechRobo on hackint) to discuss.</p>
     <h1>API Documentation</h1>
-    <h3>Call: GET <code>/find/$videoid</code></h3>
+    <h3>Call: GET <code>/api/:version/:videoid</code></h3>
+    <h4>Current versions available: v2, v3</h4>
     <p>
     <b>Fields</b>
+    {% if changelog[0] %}<div id="Fcl">
+      <u>Changelog</u>
+      <ul>
+        {% for log, logitems in changelog[0].items() %}
+          {% if log %}
+            <li>Api version {{log}}</li>
+            <ul>
+              {% for logitem in logitems %}
+                <li>{{logitem}}</li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+        {% endfor %}
+      </ul>
+    </div>{%endif%}
     <br>
     <dl>
       {% if fields is mapping %}
@@ -30,7 +46,21 @@ body {
       {% endif %}
     </dl>
     <b>Service Objects</b>
-    <p>One object for every service searched.</p>
+    {% if changelog[1] %}<div id="Scl">
+      <u>Changelog</u>
+      <ul>
+        {% for log, logitems in changelog[1].items() %}
+          {% if log %}
+            <li>Api version {{log}}</li>
+            <ul>
+              {% for logitem in logitems %}
+                <li>{{logitem}}</li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+        {% endfor %}
+      </ul>
+    </div>{%endif%}
     {% if services is mapping %}
       <dl>
         {% for field, value in services.items() %}

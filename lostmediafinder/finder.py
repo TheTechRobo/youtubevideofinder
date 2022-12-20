@@ -159,7 +159,7 @@ class Filmot(YouTubeService):
         capcount = int(archived)
         available = f"https://filmot.com/video/{id}" if archived else None
         return cls(
-                archived=archived, capcount=capcount, error=False,
+                archived=archived, capcount=capcount,
                 lastupdated=lastupdated, name=cls.getName(), note="",
                 rawraw=rawraw, metaonly=True, comments=False,
                 available=available
