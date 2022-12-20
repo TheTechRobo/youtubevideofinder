@@ -37,9 +37,9 @@ class Service(JSONDataclass):
 
     Attributes:
         archived (bool): Whether the video is archived or not.
-        available (int): A link to the archived material if it can be produced; null otherwise.
+        available (Optional[str]): A link to the archived material if it can be produced; null otherwise.
         capcount (int): The number of captures. Currently deprecated - the capture count sent may or may not be the true number of captures. However, it will always be a positive non-zero number if the video is archived.
-        error (bool): Whether or not the request failed.
+        error (Optional[str]): An error message if an error was encountered; otherwise, null.
         lastupdated (int): The timestamp the data was retrieved from the server. Used internally to expire cache entries.
         name (str): The name of the service. Used in the UI.
         note (str): A footnote about the service. This could be different depending on conditions. For example, the Internet Archive has an extra passage if the item is dark. Used in the UI.
@@ -138,7 +138,7 @@ class YouTubeResponse(JSONDataclass):
         id (str): The interpreted video ID.
         status (str): bad.id if invalid ID.
         keys (list[YouTubeService]): An array with all the server responses. THIS IS DIFFERENT THAN BEFORE! Before, this would be an array of strings. You'd use the strings as keys. Now, this array has the data directly!
-        api_version (int): The API version. Currently set to %s. Breaking API changes are made by incrementing this. There may be a way to request a specific version in the future.
+        api_version (int): The API version. Breaking API changes are made by incrementing this.
     """
     id: str
     status: str
