@@ -5,8 +5,8 @@ from flask import Flask, render_template, request, abort
 
 app = Flask(__name__)
 
-@app.route("/api/v2/<id>")
-async def youtubev2(id, site="youtube"):
+@app.route("/find/<id>")
+async def youtubev2(id):
     return (await lostmediafinder.YouTubeResponse.generateAsync(id)).json()
 
 async def wrapperYT(id):
