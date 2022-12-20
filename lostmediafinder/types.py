@@ -145,23 +145,15 @@ class YouTubeResponse(JSONDataclass):
     keys: list[YouTubeService]
     api_version: int = 3
 
-    def coerce_to_api_version(self, target):
+    def coerce_to_api_version(selfNEW, target):
         """
-        Downgrades the API version to one of your choice, then returns self.
-        PLEASE NOTE! While it returns the coerced response, it itself is also downgraded.
-        So:
-            >>> original_response = Response(...)
-            >>> original_response.api_version
-            3
-            >>> coerced = original_response.coerce_to_api_version(2)
-            >>> coerced.api_version
-            2
-            >>> original_response.api_version
-            2
+        Downgrades the API version to one of your choice, then returns it.
 
         Arguments:
             target (int): The target API version. Must be lower than self.api_version
         """
+        import copy
+        self = copy.deepcopy(selfNEW)
         currentApiVersion = self.api_version
         if currentApiVersion < target:
             raise ValueError("cannot upgrade api version")
@@ -169,11 +161,13 @@ class YouTubeResponse(JSONDataclass):
             fname = f"_convert_v{self.api_version}_to_v{self.api_version-1}"
             if not hasattr(self, fname):
                 raise ValueError("cannot downgrade any further")
-            getattr(self, fname)()
+            self = getattr(self, fname)()
         assert self.api_version == target
         return self
 
-    def _convert_v3_to_v2(self):
+    def _convert_v3_to_v2(selfNEW):
+        import copy
+        self = copy.deepcopy(selfNEW)
         assert self.api_version == 3
         self.api_version = 2
         for index, service in enumerate(self.keys):
