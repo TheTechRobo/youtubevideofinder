@@ -48,6 +48,9 @@ button {
   padding-bottom: 41px;
   border: 1px solid black;
 }
+.button-dark {
+  background-color: rgba(50, 50, 50) !important;
+}
 
 button[disabled] {
   background-color: rgba(200, 200, 200, 1);
@@ -73,8 +76,86 @@ button[disabled] {
   color: white;
   background-color: black;
 }
+
+.a-dark{
+  color: orange;
+}
+
+.a-dark:visited {
+  color: red;
+}
+
+#theme-select {
+  background: url("/static/dark.svg");
+  height: 32px;
+  width: 32px;
+  cursor: pointer;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.theme-select-dark {
+  filter: invert(100%);
+}
+
+#theme-select:hover {
+  animation-name: test1;
+  animation-duration: 0.5s;
+  animation-iteration-count: 1;
+  animation-fill-mode: forwards;
+  -webkit-animation-fill-mode: forwards;
+}
+
+@keyframes test1{
+  from {
+    background-color: rgba(0, 0, 0, 0);
+  }
+  to {
+    background-color: rgba(100, 100, 100, 1);
+  }
+}
+
 </style>
     <script>
+      const DARKNESS = {
+        "#theme-select": "theme-select-dark",
+        "#but": "button-dark",
+        "body": "white",
+        "a": "a-dark",
+        "input": "white"
+      }
+      function toggleDarkness() {
+        if (localStorage.getItem("dark")) {
+          console.log("MODE = DARK");
+          lightMode();
+        }
+        else {
+          console.log("MODE != DARK");
+          darkMode();
+        }
+      }
+      function lightMode() {
+        for (const [key, value] of Object.entries(DARKNESS)) {
+          document.querySelectorAll(key).forEach((e) => e.classList.remove(value));
+        }
+        try {
+          localStorage.removeItem("dark");
+        }
+        catch(e) {
+          alert("Could not save preference!");
+        }
+      }
+      function darkMode() {
+        for (const [key, value] of Object.entries(DARKNESS)) {
+          document.querySelectorAll(key).forEach((e) => e.classList.add(value));
+        }
+        try {
+          localStorage.setItem("dark", true);
+        }
+        catch(e) {
+          alert("Could not save preference!");
+        }
+      }
       function coerceToVid(vid) {
         // Regexes here are based on the ones from https://github.com/mattwright324/youtube-metadata/blob/master/js/shared.js#L8-L14
         let patterns = [
@@ -102,6 +183,8 @@ button[disabled] {
           console.log(newVid);
           if (!newVid) {
             document.getElementById("data").innerHTML = `<span style="color:red;">That doesn't look like a valid video ID.</span>`;
+            document.getElementById("but").disabled = false;
+            document.getElementById("but").innerHTML = "Search for Captures";
             return false;
           }
           document.getElementById("int").innerHTML = `<br>Interpreting that URL as video ID ${newVid}`;
@@ -179,6 +262,7 @@ button[disabled] {
                 document.getElementById("data").innerHTML = "<span class='red'>this code should be unreachable - please report this issue and provide a way to reproduce</span>";
               }
       }
+      console.log(localStorage.getItem("dark"));
     </script>
   </head>
   <body>
@@ -205,11 +289,18 @@ button[disabled] {
     </div>
     <div id="warning">
       <b>I take no responsibility for any data loss as a result of incorrect values.</b> Verify the values for any important videos!
+      <span style="float: right;" id="theme-select" onclick="toggleDarkness()"></span>
     </div>
     <a href="https://github.com/TheTechRobo/youtubevideofinder/">Source code (GitHub)</a>
     <a href="/api" style="float:right;">API documentation</a>
   </body>
 </html>
+    <script>
+if (localStorage.getItem("dark")) {
+        darkMode();
+        console.log("DarkModeSetup");
+}
+    </script>
 {% if default %}
     <script>
       finishWrpa("{{default}}");
