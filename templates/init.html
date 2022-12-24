@@ -39,7 +39,7 @@ input {
   border: 1px solid grey;
 }
 button {
-  max-height: 150px;
+  height: 100%;
   max-width: 150px;
   position: absolute;
   top: 0;
@@ -47,6 +47,11 @@ button {
   padding-top: 41px;
   padding-bottom: 41px;
   border: 1px solid black;
+}
+
+button[disabled] {
+  background-color: rgba(200, 200, 200, 1);
+  cursor: not-allowed;
 }
 
 :focus {
@@ -119,9 +124,9 @@ button {
                         return response.json();
                       })
           .then((data) => {
-                  if (data === null) {
-                    return;
-                  }
+            if (data === null) {
+              return;
+            }
             let write = "<ul>";
             let keys = data.keys;
             keys.forEach((wbm) => {
@@ -158,9 +163,15 @@ button {
           .catch((e) => {
               document.getElementById("data").innerHTML = '<span class="red" style="background-color: #FFFFFF;">an error occured - check your internet connection</span>';
               throw (e);
+          })
+          .finally(() => {
+            document.getElementById("but").disabled = false;
+            document.getElementById("but").innerHTML = "Search for Captures";
           });
         }
       function finishWrpa(data) {
+              document.getElementById("but").disabled = true;
+              document.getElementById("but").innerHTML = "Searching...";
               try {
                 return finish(data);
               }
@@ -184,7 +195,7 @@ button {
     </noscript>
     <div id="contenu">
       <form onsubmit="finishWrpa(document.getElementById('texting').value); return false;">
-        <input type="text" id="texting" placeholder="Enter video ID here..."/>
+        <input type="text" id="texting" placeholder="Enter video ID here..." value="{{default}}"/>
         <button action="submit" id="but" class="btn btn-primary">Search for Captures</button>
       </form>
       <span id="int"></span>
@@ -199,3 +210,8 @@ button {
     <a href="/api" style="float:right;">API documentation</a>
   </body>
 </html>
+{% if default %}
+    <script>
+      finishWrpa("{{default}}");
+    </script>
+{% endif %}

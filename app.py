@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 
 import lostmediafinder
 
@@ -36,7 +36,8 @@ async def index():
     """
     Shows the landing page
     """
-    return render_template("init.html")
+    default = request.args.get("q") or ""
+    return render_template("init.html", default=default)
 
 def parse_changelog(changelog):
     """
