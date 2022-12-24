@@ -5,7 +5,48 @@
 body {
   font-family: Ubuntu, Arial, sans-serif;
 }
+.body-dark {
+  background-color: black;
+  color: white;
+}
 </style>
+    <script>
+      const DARKNESS = {
+        body: "body-dark"
+      };
+      function toggleDarkness() {
+        if (localStorage.getItem("dark")) {
+          console.log("MODE = DARK");
+          lightMode();
+        }
+        else {
+          console.log("MODE != DARK");
+          darkMode();
+        }
+      }
+      function lightMode() {
+        for (const [key, value] of Object.entries(DARKNESS)) {
+          document.querySelectorAll(key).forEach((e) => e.classList.remove(value));
+        }
+        try {
+          localStorage.removeItem("dark");
+        }
+        catch(e) {
+          alert("Could not save preference!");
+        }
+      }
+      function darkMode() {
+        for (const [key, value] of Object.entries(DARKNESS)) {
+          document.querySelectorAll(key).forEach((e) => e.classList.add(value));
+        }
+        try {
+          localStorage.setItem("dark", true);
+        }
+        catch(e) {
+          alert("Could not save preference!");
+        }
+      }
+    </script>
   </head>
   <body>
     <p>Please don't spam my servers - anyone that spams too much may be banned. Contact me on Discord (TheTechRobo#7420) or IRC (TheTechRobo on hackint) to discuss.</p>
@@ -74,4 +115,10 @@ body {
       fail
     {% endif %}
   </body>
+    <script>
+if (localStorage.getItem("dark")) {
+        darkMode();
+        console.log("DarkModeSetup");
+}
+    </script>
 </html>
