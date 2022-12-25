@@ -4,6 +4,14 @@ import lostmediafinder
 
 app = Flask(__name__)
 
+@app.route("/robots.txt")
+async def robots():
+    return """
+User-Agent: *
+Crawl-delay: 2
+Disallow:
+    """.strip()
+
 @app.route("/find/<id>")
 async def youtubev2(id):
     """
