@@ -4,7 +4,7 @@
   <meta name="description" content="Easily search for YouTube videos in several archives." />
   <link rel="shortcut icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAIZJREFUOE+l0tENgCAMBNDrQroXA7GXLnSGxiZYaADpp6GPa1GwWbLZjxC4Emj4meNzDVAaew3R9wYgQJCAtOEEbZLPqXLLkQEFrCroToBPNwYK9CLrgBtjCJTLdAdBDXdgfX7j0QvodDM/EkmKdJ5lFtDRAmQqgaXsIUtAL8ky4JFfQL34BxrdPhGLmIGXAAAAAElFTkSuQmCC">
   <head>
-    <script defer data-domain="findyoutubevideo.thetechrobo.ca" src="https://analytic.thetechrobo.ca/js/script.js"></script>
+    <script defer data-domain="findyoutubevideo.thetechrobo.ca" src="https://analytic.thetechrobo.ca/js/script.tagged-events.js"></script>
     <title>YouTube Video Finder</title>
     <style>
 #contenu {
@@ -281,7 +281,7 @@ button[disabled] {
   I am sorry for any inconvenience this causes you.
     </noscript>
     <div id="contenu">
-      <form onsubmit="finishWrpa(document.getElementById('texting').value); return false;">
+      <form onsubmit="finishWrpa(document.getElementById('texting').value); return false;" class="plausible-event-name=FormSubmit">
         <input type="text" id="texting" placeholder="Enter video ID here..." value="{{default}}"/>
         <button action="submit" id="but" class="btn btn-primary">Search for Captures</button>
       </form>
