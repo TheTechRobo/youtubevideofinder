@@ -58,6 +58,31 @@ def parse_changelog(changelog):
         parsed[restOfLine] = others
     return parsed
 
+class E:
+    name: str
+    type: str
+
+    def __init__(self, name, type):
+        name = name.strip()
+        type = type.strip()
+
+        self.name = name
+        self.type = type
+        self.type = self.type.rstrip(")")
+
+async def parse_lines(lines: list[str]) -> dict[E, str]:
+    """
+    Parses lines into a mapping
+    """
+    r = {}
+    for line in lines:
+        line = line.strip()
+        splitted = line.split(":", 1)
+        field = E(*splitted[0].split(" ("))
+        description = splitted[1].strip()
+        r[field] = description
+    return r
+
 @app.route("/api")
 async def api():
     """
@@ -74,6 +99,7 @@ async def api():
         changelog[0] = parse_changelog(rChangelog[1].strip())
     if len(sChangelog) > 1:
         changelog[1] = parse_changelog(sChangelog[1].strip())
-    # TODO: Parse that
-    # This works fine for now tho
+    # Parse the attributes list
+    responseDocstring = await parse_lines(rChangelog[0].split("Attributes:\n")[1].strip().split("\n"))
+    serviceDocstring  = await parse_lines(sChangelog[0].split("Attributes:\n")[1].strip().split("\n"))
     return render_template("api.html", fields=responseDocstring, services=serviceDocstring, changelog=changelog)

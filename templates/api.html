@@ -12,10 +12,20 @@ body {
   background-color: black;
   color: white;
 }
+code {
+  background-color: black;
+  color: white;
+  font-size: 16px;
+}
+.code-dark {
+  background-color: darkblue;
+  color: lightgreen;
+}
 </style>
     <script>
       const DARKNESS = {
-        body: "body-dark"
+        body: "body-dark",
+        code: "code-dark"
       };
       function toggleDarkness() {
         if (localStorage.getItem("dark")) {
@@ -78,8 +88,8 @@ body {
       {% if fields is mapping %}
         {% for field, value in fields.items() %}
           <dt><code>
-              {{ field }}
-          </code></dt>
+              {{ field.name }}
+          </code> ({{ field.type}})</dt>
           <dd>{{value}}
           </dd>
         {% endfor %}
@@ -108,7 +118,7 @@ body {
     {% if services is mapping %}
       <dl>
         {% for field, value in services.items() %}
-          <dt><code>{{field}}</code></dt>
+          <dt><code>{{field.name}}</code> ({{field.type}})</dt>
           <dd>{{value}}</dd>
         {%endfor%}
       </dl>
