@@ -3,3 +3,4 @@ requests
 switch
 nest_asyncio
 cachetools
+click

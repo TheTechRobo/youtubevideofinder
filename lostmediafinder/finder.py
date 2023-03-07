@@ -2,6 +2,7 @@
 All the Service implementations live here.
 """
 
+import random
 import time
 import urllib.parse
 
@@ -133,6 +134,8 @@ class Ya(YouTubeService):
             note=cls.note if archived else "", rawraw=rawraw, metaonly=False
         )
 
+# TODO: Make a YouTubeServiceWithCooldown or something
+
 class Filmot(YouTubeService):
     """
     Queries Filmot for the video you requested.
@@ -160,6 +163,36 @@ class Filmot(YouTubeService):
         available = f"https://filmot.com/video/{id}" if archived else None
         return cls(
                 archived=archived, capcount=capcount,
+                lastupdated=lastupdated, name=cls.getName(), note="",
+                rawraw=rawraw, metaonly=True, comments=False,
+                available=available
+        )
+
+class Playboard(YouTubeService):
+    """
+    Queries Playboard.co for whether it's archived or not.
+    Playboard is metadata-only as far as I know.
+    """
+    name = "Playboard.co"
+    
+    @classmethod
+    def _run(cls, id, includeRaw=True, asynchronous=False):
+        user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.%s.0.0 Safari/537.36"
+        user_agent = user_agent % random.randint(0, 100)
+        url = f"https://playboard.co/en/video/{id}"
+        code = requests.get(url, headers={"User-Agent": user_agent}).status_code
+        rawraw = {"status_code": code, "ua_used": user_agent}
+        lastupdated = time.time()
+        available = None
+        if code == 200:
+            archived = True
+            available = url
+        elif code == 404:
+            archived = False
+        else:
+            error = f"bad status code {code}"
+        return cls(
+                archived=archived, capcount=1 if archived else 0,
                 lastupdated=lastupdated, name=cls.getName(), note="",
                 rawraw=rawraw, metaonly=True, comments=False,
                 available=available
