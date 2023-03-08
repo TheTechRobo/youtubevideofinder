@@ -189,6 +189,8 @@ class Playboard(YouTubeService):
             available = url
         elif code == 404:
             archived = False
+        elif code == 429:
+            raise AssertionError("We've been blocked by Playboard")
         else:
             raise AssertionError(f"bad status code {code}")
         return cls(
