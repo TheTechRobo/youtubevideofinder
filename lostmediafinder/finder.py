@@ -190,8 +190,7 @@ class Playboard(YouTubeService):
         elif code == 404:
             archived = False
         else:
-            error = f"bad status code {code}"
-            archived = False
+            raise AssertionError(f"bad status code {code}")
         return cls(
                 archived=archived, capcount=1 if archived else 0,
                 lastupdated=lastupdated, name=cls.getName(), note="",
