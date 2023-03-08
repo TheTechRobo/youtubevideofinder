@@ -191,6 +191,7 @@ class Playboard(YouTubeService):
             archived = False
         else:
             error = f"bad status code {code}"
+            archived = False
         return cls(
                 archived=archived, capcount=1 if archived else 0,
                 lastupdated=lastupdated, name=cls.getName(), note="",
