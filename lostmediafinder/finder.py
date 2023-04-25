@@ -198,3 +198,33 @@ class Playboard(YouTubeService):
                 rawraw=rawraw, metaonly=True, comments=False,
                 available=available
         )
+
+class NoxinfluencerService(YouTubeService):
+    """
+    Checks Noxinfluencer.
+    """
+    name = "Noxinfluencer"
+    endpoint = "https://www.noxinfluencer.com/youtube/video-analytics/"
+
+    @classmethod
+    def _run(cls, id, includeRaw=True, asynchronous=False):
+        user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.%s.0.0 Safari/537.36"
+        user_agent = user_agent % random.randint(0, 100)
+        url = cls.endpoint
+        code = requests.get(url, headers={"User-Agent": user_agent}).status_code
+        rawraw = {"status_code": code, "ua_used": user_agent}
+        lastupdated = time.time()
+        available = None
+        if code == 200:
+            archived = True
+            available = url
+        elif code == 404:
+            archived = False
+        else:
+            raise AssertionError(f"bad status code {code}")
+        return cls(
+                archived=archived, capcount=1 if archived else 0,
+                lastupdated=lastupdated, name=cls.getName(), note="",
+                rawraw=rawraw, metaonly=True, comments=False,
+                available=available
+        )
