@@ -174,7 +174,8 @@ class Playboard(YouTubeService):
     Playboard is metadata-only as far as I know.
     """
     name = "Playboard.co"
-    
+    note = "The Playboard scraper is unreliable; please verify values yourself."
+
     @classmethod
     def _run(cls, id, includeRaw=True, asynchronous=False):
         user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.%s.0.0 Safari/537.36"
@@ -184,18 +185,16 @@ class Playboard(YouTubeService):
         rawraw = {"status_code": code, "ua_used": user_agent}
         lastupdated = time.time()
         available = None
-        if code == 200:
+        if code == 200 or code == 429:
             archived = True
             available = url
         elif code == 404:
             archived = False
-        elif code == 429:
-            raise AssertionError("We've been blocked by Playboard")
         else:
             raise AssertionError(f"bad status code {code}")
         return cls(
                 archived=archived, capcount=1 if archived else 0,
-                lastupdated=lastupdated, name=cls.getName(), note="",
+                lastupdated=lastupdated, name=cls.getName(), note=cls.note,
                 rawraw=rawraw, metaonly=True, comments=False,
                 available=available
         )
