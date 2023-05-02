@@ -17,13 +17,13 @@ async def youtubev2(id):
     """
     Provides backwards compatibility for the old endpoint.
     """
-    return (await lostmediafinder.YouTubeResponse.generateAsync(id)).coerce_to_api_version(2).json()
+    return (await lostmediafinder.YouTubeResponse.generate(id)).coerce_to_api_version(2).json()
 
 async def wrapperYT(id):
     """
     Wrapper for generateAsync
     """
-    return await lostmediafinder.YouTubeResponse.generateAsync(id)
+    return await lostmediafinder.YouTubeResponse.generate(id)
 
 @app.route("/api/v<int:v>/<site>/<id>")
 @app.route("/api/v<int:v>/<id>")
@@ -59,6 +59,9 @@ def parse_changelog(changelog):
     return parsed
 
 class E:
+    """
+    What does this do? Good question
+    """
     name: str
     type: str
 

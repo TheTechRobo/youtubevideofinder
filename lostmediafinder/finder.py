@@ -19,7 +19,7 @@ class WaybackMachine(YouTubeService):
     name = "Wayback Machine"
 
     @classmethod
-    def _run(cls, id, includeRaw=True, asynchronous=False) -> T:
+    async def _run(cls, id, includeRaw=True, asynchronous=False) -> T:
         ismeta = False
         lien = f"https://web.archive.org/web/2oe_/http://wayback-fakeurl.archive.org/yt/{id}"
         response = requests.get(lien, allow_redirects=False, timeout=15)
@@ -53,7 +53,7 @@ class InternetArchive(YouTubeService):
     ]
 
     @classmethod
-    def _run(cls, id, includeRaw=True, asynchronous=False) -> T:
+    async def _run(cls, id, includeRaw=True, asynchronous=False) -> T:
         responses = []
         is_dark = False
         for template in cls.items_tried:
@@ -84,7 +84,7 @@ class GhostArchive(YouTubeService):
     Queries GhostArchive for the video you requested.
     """
     @classmethod
-    def _run(cls, id, includeRaw=True, asynchronous=False) -> T:
+    async def _run(cls, id, includeRaw=True, asynchronous=False) -> T:
         link = f"https://ghostarchive.org/varchive/{id}"
         code = requests.get(link).status_code
         rawraw = code if includeRaw else None
@@ -116,7 +116,7 @@ class Ya(YouTubeService):
     )
 
     @classmethod
-    def _run(cls, id, includeRaw=True, asynchronous=False):
+    async def _run(cls, id, includeRaw=True, asynchronous=False):
         vid = id
         assert cls._getFromConfig("ya", "enabled"), "#youtubearchive API access is not enabled"
         auth = HTTPBasicAuth(cls._getFromConfig("ya", "username"), cls._getFromConfig("ya", "password"))
@@ -144,7 +144,7 @@ class Filmot(YouTubeService):
     cooldown: int = 2
 
     @classmethod
-    def _run(cls, id, includeRaw=True, asynchronous=False) -> T:
+    async def _run(cls, id, includeRaw=True, asynchronous=False) -> T:
         enabled = cls._getFromConfig("filmot", "enabled")
         assert enabled, "Filmot API access is not enabled."
         key = cls._getFromConfig("filmot", "key")
@@ -177,7 +177,7 @@ class Playboard(YouTubeService):
     note = "The Playboard scraper is unreliable; please verify values yourself."
 
     @classmethod
-    def _run(cls, id, includeRaw=True, asynchronous=False):
+    async def _run(cls, id, includeRaw=True, asynchronous=False):
         user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.%s.0.0 Safari/537.36"
         user_agent = user_agent % random.randint(0, 100)
         url = f"https://playboard.co/en/video/{id}"
@@ -185,7 +185,7 @@ class Playboard(YouTubeService):
         rawraw = {"status_code": code, "ua_used": user_agent}
         lastupdated = time.time()
         available = None
-        if code == 200 or code == 429:
+        if code in {200, 429}:
             archived = True
             available = url
         elif code == 404:
@@ -207,7 +207,7 @@ class NoxinfluencerService(YouTubeService):
     endpoint = "https://www.noxinfluencer.com/youtube/video-analytics/"
 
     @classmethod
-    def _run(cls, id, includeRaw=True, asynchronous=False):
+    async def _run(cls, id, includeRaw=True, asynchronous=False):
         user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.%s.0.0 Safari/537.36"
         user_agent = user_agent % random.randint(0, 100)
         url = cls.endpoint

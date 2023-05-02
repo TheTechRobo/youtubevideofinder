@@ -1,15 +1,13 @@
 """
 The classes that are used to store the response data.
 """
-
-import asyncio as aio
+import copy
 import dataclasses
 import time
 import typing
 import re
 
 import cachetools.func
-import nest_asyncio
 
 from snscrape.base import _JSONDataclass as JSONDataclass
 
@@ -24,8 +22,6 @@ def update_cnfig(ya, filmot, version):
     config.ya = ya
     config.filmot = filmot
     config.config_version = version
-
-nest_asyncio.apply()
 
 T = typing.TypeVar("T", bound="YouTubeService") # pylint: disable=invalid-name
 # (this name is fine)
@@ -72,7 +68,7 @@ class Service(JSONDataclass):
         return val
 
     @classmethod
-    def _run(cls, id, includeRaw=True, asynchronous=False) -> T:
+    async def _run(cls, id, includeRaw=True, asynchronous=False) -> T:
         raise NotImplementedError("Subclass Service and impl the _run function")
 
     @classmethod
@@ -81,7 +77,7 @@ class Service(JSONDataclass):
     #   maxsize=128, ttl=600
     # might add this to config.py later
     @cachetools.func.ttl_cache
-    def run(cls, id: str, includeRaw=True, **kwargs):
+    async def run(cls, id: str, includeRaw=True, **kwargs):
         """
         Retrieves the data from the service.
         Arguments:
@@ -89,7 +85,7 @@ class Service(JSONDataclass):
             includeRaw (bool): Whether or not to include the raw data as sent from the service. If you don't need this data, turn this off; it's only the default for compatibility.
         """
         try:
-            return cls._run(id, includeRaw=includeRaw, **kwargs)
+            return await cls._run(id, includeRaw=includeRaw, **kwargs)
         except Exception as ename: # pylint: disable=broad-except
             note = f"An error occured while retrieving data from {cls.getName()}."
             print(ename)
@@ -100,14 +96,6 @@ class Service(JSONDataclass):
                     rawraw=None, metaonly=False, comments=False,
                     available=None
             )
-
-    @classmethod
-    async def runAsync(cls, id, includeRaw=True):
-        """
-        Runs cls.run(...) but it's async.
-        This currently still uses blocking networking (requests)!
-        """
-        return cls.run(id, includeRaw, asynchronous=True)
 
     @classmethod
     def getName(cls) -> str:
@@ -166,7 +154,6 @@ class YouTubeResponse(JSONDataclass):
         return self
 
     def _convert_v3_to_v2(selfNEW):
-        import copy
         self = copy.deepcopy(selfNEW)
         assert self.api_version == 3
         self.api_version = 2
@@ -191,12 +178,11 @@ class YouTubeResponse(JSONDataclass):
         return bool(re.match(r"^[A-Za-z0-9_-]{10}[AEIMQUYcgkosw048]$", id))
 
     @classmethod
-    def generate(cls, id, asyncio=False):
+    async def generate(cls, id, asyncio=False):
         """
         Runs all the Services.
         Arguments:
             id: The video ID
-            asyncio: Whether or not to use asyncio.run_until_complete; this is implied if you use generateAsync
         """
         if not cls.verifyId(id):
             return cls(status="bad.id", id=id, keys=[])
@@ -204,20 +190,9 @@ class YouTubeResponse(JSONDataclass):
         services = cls._get_services()
         for subclass in services:
             result = None
-            if asyncio:
-                result = aio.get_event_loop().run_until_complete(subclass.runAsync(id))
-            else:
-                result = subclass.run(id)
+            result = await subclass.run(id)
             keys.append(result)
         return cls(id=id, status="ok", keys=keys)
-
-    @classmethod
-    async def generateAsync(cls, *args, **kwargs):
-        """
-        Runs all the Services asynchronously.
-        """
-        kwargs['asyncio'] = True
-        return cls.generate(*args, **kwargs)
 
     def __str__(self):
         services = "Services:\n"
