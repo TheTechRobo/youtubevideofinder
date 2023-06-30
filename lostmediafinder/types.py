@@ -7,7 +7,8 @@ import time
 import typing
 import re
 
-import cachetools.func
+import cachetools
+import asyncache
 
 from snscrape.base import _JSONDataclass as JSONDataclass
 
@@ -72,11 +73,7 @@ class Service(JSONDataclass):
         raise NotImplementedError("Subclass Service and impl the _run function")
 
     @classmethod
-    # cache has a max of 128 items; items are cached for 600 seconds (10min)
-    # important settings:
-    #   maxsize=128, ttl=600
-    # might add this to config.py later
-    @cachetools.func.ttl_cache
+    @asyncache.cached(cachetools.TTLCache(1024, 600))
     async def run(cls, id: str, includeRaw=True, **kwargs):
         """
         Retrieves the data from the service.

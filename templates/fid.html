@@ -5,12 +5,42 @@
 body {
   font-family: Ubuntu, Arial, sans-serif;
 }
+span > a {
+  color: cyan;
+}
+span > a:visited {
+  color: pink;
+}
 </style>
   </head>
   <body>
-    <h1>fid is deprecated</h1>
-    <i>Well, it wasn't actually ever supported, so...</i>
-    <p>While I don't <i>like</i> using JavaScript for the basic site functionality, it makes stuff a lot easier and more modern-feeling.</p>
-    <p>If you want to use the data in your own project, and that's why you're looking at this, the API is publicly documented. Please don't spam my servers, though - anyone that spams too much may be banned. Contact me on Discord (TheTechRobo#7420) or IRC (TheTechRobo on hackint) to discuss.</p>
+    <h1>Results of id {{ resp.id }}</h1>
+    {% if resp['status'] != "ok" %}
+      <p>STATUS FAILED. {{resp['status']}}</p>
+      {%endif%}
+    <ul>
+    {% for result in resp['keys'] %}
+    <li>{{ result['name'] }} :
+      {% if result['archived'] %}
+        <span style="background-color: black;color: {{'yellow' if result.metaonly else 'green'}};">Archived {{'(metadata only)' if result.metaonly else ''}}
+          {{ '(incl. comments)' if result.comments else '' }}
+          {% if result['available'] %}<a href="{{result['available']}}">(link)</a>
+          {% endif %}
+        </span>
+      {% elif result['error'] %}
+        <span style="background-color: black;color: white;">Error</span>
+      {% elif not result['archived'] %}
+        <span style="background-color: black;color: red;">Not Archived</span>
+      {% else %}
+        <span style="background-color: black;color: white;">Unknown</span>
+      {% endif %}
+      <br>
+      {{ result['note'] | safe }}
+    </li>
+    {%endfor%}
+    </ul>
+    <details><summary>Raw json</summary>
+      {{resp.json()}}
+    </details>
   </body>
 </html>

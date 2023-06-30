@@ -1,4 +1,6 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, Response
+
+import re, urllib.parse
 
 import lostmediafinder
 
@@ -7,6 +9,7 @@ app = Flask(__name__)
 @app.route("/robots.txt")
 async def robots():
     return """
+# I'm 100% fine with crawlers, just don't fuck up my servers.
 User-Agent: *
 Crawl-delay: 2
 Disallow:
@@ -27,7 +30,7 @@ async def wrapperYT(id):
 
 @app.route("/api/v<int:v>/<site>/<id>")
 @app.route("/api/v<int:v>/<id>")
-async def youtube(v, id, site="youtube"):
+async def youtube(v, id, site="youtube", json=True):
     """
     Wrapper around lostmediafinder
     """
@@ -36,8 +39,63 @@ async def youtube(v, id, site="youtube"):
     if v not in (2, 3):
         return "Unrecognised API version", 404
     if site == "youtube":
-        return (await wrapperYT(id)).coerce_to_api_version(v).json()
+        r = (await wrapperYT(id)).coerce_to_api_version(v)
+        if json:
+            return r.json()
+        return r
     return "Unrecognised site", 404
+
+@app.route("/noscript_init.html")
+async def noscript_init():
+    return """
+    <!DOCTYPE html>
+    <html>
+      <body style="text-align:center;align-items:center">
+        <p>Awaiting input...</p>
+      </body>
+    </html>
+    """
+
+ID_PATTERN = re.compile(r'^[A-Za-z0-9_-]{10}[AEIMQUYcgkosw048]$')
+PATTERNS = [
+    re.compile(r'(?:https?://)?(?:\w+\.)?youtube\.com/watch/?\?v=([A-Za-z0-9_-]{10}[AEIMQUYcgkosw048])(?:[\/&].*)?', re.IGNORECASE),
+    re.compile(r'(?:https?://)?(?:\w+\.)?youtube.com/(?:v|embed|shorts|video)/([A-Za-z0-9_-]{10}[AEIMQUYcgkosw048])(?:[\/&].*)?', re.IGNORECASE),
+    re.compile(r'(?:https?://)?youtu.be/([A-Za-z0-9_-]{10}[AEIMQUYcgkosw048])(?:\?.*)?', re.IGNORECASE),
+    re.compile(r'(?:https?://)?filmot.com/video/([A-Za-z0-9_-]{10}[AEIMQUYcgkosw048])(?:\?.*)?', re.IGNORECASE)
+]
+
+def coerce_to_id(vid):
+    if re.match(ID_PATTERN, vid):
+        return vid
+
+    for pattern in PATTERNS:
+        newVid = re.sub(pattern, lambda match: match.group(1), vid)
+        if re.match(ID_PATTERN, newVid):
+            return newVid
+    return None
+
+@app.route("/noscript_load.html")
+async def noscript_load():
+    if not request.args.get("d"):
+        return "No d param provided - It should be the video id or url", 400
+    id = coerce_to_id(request.args['d'])
+    response = Response("""
+    <!DOCTYPE html>
+    <html>
+    <head><meta http-equiv="refresh" content="0; url=/noscript_load_thing.html?id=%s" />
+    <body>
+    <img src="/static/ab79a231234507.564a1d23814ef.gif" width="25" height="25" />Loading could take up to 45 seconds.</img>
+    </body>
+    </html>
+    """ % id, headers=(("FinUrl", f"/noscript_load_thing.html?id={id}"),))
+    return response, 302
+
+@app.route("/noscript_load_thing.html")
+async def load_thing():
+    if not request.args.get("id"):
+        return "Missing id parameter", 400
+    t = await youtube(3, request.args['id'], "youtube", json=False)
+    return render_template("fid.html", resp=t)
 
 @app.route("/")
 async def index():

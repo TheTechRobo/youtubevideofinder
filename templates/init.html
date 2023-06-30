@@ -271,25 +271,20 @@ button[disabled] {
     </script>
   </head>
   <body>
-    <noscript>
-<style>
-.contenu, .data {
-  width: 100%;
-  display: none;
-}
-</style>
-  This website requires JavaScript to function correctly.
-  <br>
-  I am sorry for any inconvenience this causes you.
-    </noscript>
     <div id="contenu">
-      <form onsubmit="finishWrpa(document.getElementById('texting').value); return false;">
-        <input type="text" id="texting" placeholder="Enter video ID here..." value="{{default}}"/>
+      <form onsubmit="finishWrpa(document.getElementById('texting').value); return false;" target="data-frame" action="/noscript_load.html">
+        <input name="d" type="text" id="texting" placeholder="Enter video ID here..." value="{{default}}"/>
         <button action="submit" id="but" class="btn btn-primary">Search for Captures</button>
       </form>
       <span id="int"></span>
     </div>
     <div id="data">
+      <noscript>
+        <iframe name="data-frame" src="/noscript_init.html" style="height:100%;width:100%;">
+          Your browser doesn't support JavaScript or iframes.<br />
+          This website requires at least one of them.
+        </iframe>
+      </noscript>
       <p style="text-align: center;"><i>website created by <a href="https://thetechrobo.ca">TheTechRobo</a></i></p>
     </div>
     <div id="warning">
