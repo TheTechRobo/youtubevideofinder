@@ -79,10 +79,18 @@ async def noscript_load():
     if not request.args.get("d"):
         return "No d param provided - It should be the video id or url", 400
     id = coerce_to_id(request.args['d'])
+    if not id:
+        return """
+        <!DOCTYPE html>
+        <html><body style="text-align:center;align-items:center;">
+          <p style="color:red">Could not parse your input as a video ID or URL.<br />Your input was:<br /><code>%s</code></p>
+          <br />IF the video ID or URL is valid, please file an issue on github!
+        </body></html>
+        """ % request.args['d'], 400
     response = Response("""
     <!DOCTYPE html>
     <html>
-    <head><meta http-equiv="refresh" content="0; url=/noscript_load_thing.html?id=%s" />
+    <head><meta http-equiv="refresh" content="0; url=/noscript_load_thing.html?id=%s" /></head>
     <body>
     <img src="/static/ab79a231234507.564a1d23814ef.gif" width="25" height="25" />Loading could take up to 45 seconds.</img>
     </body>

@@ -187,7 +187,7 @@ button[disabled] {
           let newVid = coerceToVid(vid);
           console.log(newVid);
           if (!newVid) {
-            document.getElementById("data").innerHTML = `<span style="color:red;">That doesn't look like a valid video ID.</span>`;
+                  document.getElementById("data").innerHTML = `<span style="color:red;">That doesn't look like a valid video ID.<br />If it is valid, please report the bug on github!</span>`;
             document.getElementById("but").disabled = false;
             document.getElementById("but").innerHTML = "Search for Captures";
             return false;
