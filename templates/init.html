@@ -30,9 +30,20 @@
     top: 40%;
   }
   #contenu {
-    top: 20%;
+    top: 17%;
   }
 }
+
+@media screen and (max-width: 767px) {
+  #contenu {
+    top: 30%;
+  }
+  #data {
+    font-size: 12px;
+    width: 70%;
+  }
+}
+
 
 input {
   padding-top: 50px;
@@ -45,6 +56,7 @@ input {
 button {
   height: 100%;
   max-width: 150px;
+
   position: absolute;
   top: 0;
   left: 81%;
@@ -181,7 +193,6 @@ button[disabled] {
       }
       function finish(vid1) {
         plausible('FormSubmit')
-        document.getElementById("int").innerHTML = ""
         var vid = vid1;
         if (!vid.match(/^[A-Za-z0-9_-]{10}[AEIMQUYcgkosw048]$/)) {
           let newVid = coerceToVid(vid);
@@ -192,13 +203,13 @@ button[disabled] {
             document.getElementById("but").innerHTML = "Search for Captures";
             return false;
           }
-          document.getElementById("int").innerHTML = `<br>Interpreting that URL as video ID ${newVid}`;
+          document.getElementById("data").innerHTML = `<br>Interpreting that URL as video ID ${newVid}`;
           document.getElementById("texting").value = vid1;
           vid = newVid;
         }
         let url = "{{ url_for('static', filename='ab79a231234507.564a1d23814ef.gif') }}";
         let src = "https://www.behance.net/gallery/31234507/Open-source-Loading-GIF-Icons-Vol-1/modules/199929391";
-        document.getElementById("data").innerHTML = `<img src="${url}" width="25" height="25" /> Loading could take up to 30 seconds.`;
+        document.getElementById("data").innerHTML += `<br><br><img src="${url}" width="25" height="25" /> Loading could take up to 30 seconds.`;
         fetch(`api/v3/youtube/${vid}`)
                 .then((response) => {
                         if (response.status == 410 || response.status == 404) {
@@ -276,7 +287,6 @@ button[disabled] {
         <input name="d" type="text" id="texting" placeholder="Enter video ID here..." value="{{default}}"/>
         <button action="submit" id="but" class="btn btn-primary">Search for Captures</button>
       </form>
-      <span id="int"></span>
     </div>
     <div id="data">
       <noscript>
