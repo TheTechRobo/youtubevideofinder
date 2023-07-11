@@ -8,64 +8,48 @@
 <script>window.plausible = window.plausible || function() { (window.plausible.q = window.plausible.q || []).push(arguments) }</script>
     <title>YouTube Video Finder</title>
     <style>
-#contenu {
-  width: 49%;
-  position: absolute;
-  left: 50%;
-  top: 40%;
-  -webkit-transform: translate(-50%, -50%);
-  transform: translate(-50%, -50%);
-}
-#data {
-  width: 30%;
-  position: absolute;
-  left: 49%;
-  top: 70%;
-  -webkit-transform: translate(-50%, -50%);
-  transform: translate(-50%, -50%);
-}
 
-@media (min-height: 1250px) {
-  #data {
-    top: 40%;
-  }
-  #contenu {
-    top: 17%;
-  }
+#contenu {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 30px;
+  gap: 20px;
+}
+#form-contenu {
+  display: flex;
+  width: 40rem;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); 
+  background-image: linear-gradient(#ffffff, #f4f4f4);  
+  padding: 30px;
+
+}
+.form-contenu-dark {
+  background-image: linear-gradient(#0e1323, #2e1323) !important;  
 }
 
 @media screen and (max-width: 767px) {
-  #contenu {
-    top: 30%;
-  }
-  #data {
-    font-size: 12px;
-    width: 70%;
-  }
+   #form-contenu {
+     width: 100%;
+     padding: 10px;
+   }
+}
+#texting {
+  font-size: 15px;
+  height: 4rem;
+  width: 80%;
+}
+#but {
+  height: 4rem;
+  width: 20%;
 }
 
-
-input {
-  padding-top: 50px;
-  padding-bottom: 50px;
-  width: 90%;
-  display: inline;
-  border-radius: 10px;
-  border: 1px solid grey;
-}
-button {
-  height: 100%;
-  max-width: 150px;
-
-  position: absolute;
-  top: 0;
-  left: 81%;
-  padding-top: 41px;
-  padding-bottom: 41px;
-  border: 1px solid black;
-}
 .button-dark {
   background-color: rgba(50, 50, 50) !important;
+  border-radius: 0.375rem; 
+  color: rgb(203 213 225);
 }
 
 button[disabled] {
@@ -89,9 +73,10 @@ button[disabled] {
   background-color: black;
 }
 .white {
-  color: white;
-  background-color: black;
+  color: rgb(203 213 225);
+  background-color: #1d243d;
 }
+
 
 .a-dark{
   color: orange;
@@ -137,6 +122,7 @@ button[disabled] {
         "#theme-select": "theme-select-dark",
         "#but": "button-dark",
         "body": "white",
+        "#form-contenu": "form-contenu-dark",
         "a": "a-dark",
         "input": "white"
       }
@@ -282,27 +268,31 @@ button[disabled] {
     </script>
   </head>
   <body>
-    <div id="contenu">
-      <form onsubmit="finishWrpa(document.getElementById('texting').value); return false;" target="data-frame" action="/noscript_load.html">
-        <input name="d" type="text" id="texting" placeholder="Enter video ID here..." value="{{default}}"/>
-        <button action="submit" id="but" class="btn btn-primary">Search for Captures</button>
-      </form>
-    </div>
-    <div id="data">
-      <noscript>
-        <iframe name="data-frame" src="/noscript_init.html" style="height:100%;width:100%;">
-          Your browser doesn't support JavaScript or iframes.<br />
-          This website requires at least one of them.
-        </iframe>
-      </noscript>
-      <p style="text-align: center;"><i>website created by <a href="https://thetechrobo.ca">TheTechRobo</a></i></p>
-    </div>
     <div id="warning">
       <b>I take no responsibility for any data loss as a result of incorrect values.</b> Verify the values for any important videos!
       <span style="float: right;" id="theme-select" onclick="toggleDarkness()"></span>
     </div>
     <a href="https://github.com/TheTechRobo/youtubevideofinder/">Source code (GitHub)</a>
     <a href="/api" style="float:right;">API documentation</a>
+    <div id="contenu">
+      <div>
+        <form id="form-contenu" onsubmit="finishWrpa(document.getElementById('texting').value); return false;" target="data-frame" action="/noscript_load.html">
+          <input name="d" type="text" id="texting" placeholder="Enter video ID here..." value="{{default}}"/>
+          <button action="submit" id="but" class="btn btn-primary">Search for Captures</button>
+        </form>
+      </div>
+      <div id="data" >
+        <noscript>
+          <iframe name="data-frame" src="/noscript_init.html" style="height:100%;width:100%;">
+            Your browser doesn't support JavaScript or iframes.<br />
+            This website requires at least one of them.
+          </iframe>
+        </noscript>
+        <p style="text-align: center;"><i>website created by <a href="https://thetechrobo.ca">TheTechRobo</a></i></p>
+      </div>  
+    </div>
+    
+    
   </body>
 </html>
     <script>
