@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, Response
+from flask import Flask, render_template, request, Response, redirect
 
 import re, urllib.parse
 
@@ -47,6 +47,8 @@ async def youtube(v, id, site="youtube", json=True):
 
 @app.route("/noscript_init.html")
 async def noscript_init():
+    if id := request.args.get("d"):
+        return redirect("/noscript_load.html?d=" + id)
     return """
     <!DOCTYPE html>
     <html>
@@ -111,7 +113,8 @@ async def index():
     Shows the landing page
     """
     default = request.args.get("q") or ""
-    return render_template("init.html", default=default)
+    default_id = coerce_to_id(default) or ""
+    return render_template("init.html", default=default,default_id=default_id)
 
 def parse_changelog(changelog):
     """
