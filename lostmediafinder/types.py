@@ -184,7 +184,7 @@ class YouTubeResponse(JSONDataclass):
         elif archived['metaonly']:
             verdict += "Archived with metadata only. "
         else:
-            verdict += "Not found. "
+            verdict += "Video not found. "
         if archived['comments']:
             verdict += "(with comments)"
         return verdict
@@ -208,11 +208,8 @@ class YouTubeResponse(JSONDataclass):
         any_metaonly_archived = any(map(lambda e : e.metaonly and e.archived, keys))
         any_videos_archived = any(map(lambda e : e.archived and not e.metaonly, keys))
         any_archived = {"video": any_videos_archived, "metaonly": any_metaonly_archived, "comments": any_comments_archived}
-        print(any_archived)
         verdict = cls.create_verdict(any_archived)
-        print(verdict)
         any_archived['human_friendly'] = verdict
-        print(any_archived)
         return cls(id=id, status="ok", keys=keys, verdict=any_archived)
 
     def __str__(self):
