@@ -124,10 +124,12 @@ class YouTubeResponse(JSONDataclass):
         status (str): bad.id if invalid ID.
         keys (list[YouTubeService]): An array with all the server responses. THIS IS DIFFERENT THAN BEFORE! Before, this would be an array of strings. You'd use the strings as keys. Now, this array has the data directly!
         api_version (int): The API version. Breaking API changes are made by incrementing this.
+        verdict (dict): The verdict of the response. Has video, metaonly, and comments field, that are set to true if any archive was found where that was saved. Also has human_friendly field that has a simple verdict that can be used by people.
     """
     id: str
     status: str
     keys: list[YouTubeService]
+    verdict: dict
     api_version: int = 3
 
     def coerce_to_api_version(selfNEW, target):
@@ -174,6 +176,19 @@ class YouTubeResponse(JSONDataclass):
         """
         return bool(re.match(r"^[A-Za-z0-9_-]{10}[AEIMQUYcgkosw048]$", id))
 
+    @staticmethod
+    def create_verdict(archived: dict):
+        verdict = ""
+        if archived['video']:
+            verdict += "Archived! "
+        elif archived['metaonly']:
+            verdict += "Archived with metadata only. "
+        else:
+            verdict += "Not found. "
+        if archived['comments']:
+            verdict += "(with comments)"
+        return verdict
+
     @classmethod
     async def generate(cls, id, asyncio=False):
         """
@@ -189,7 +204,16 @@ class YouTubeResponse(JSONDataclass):
             result = None
             result = await subclass.run(id)
             keys.append(result)
-        return cls(id=id, status="ok", keys=keys)
+        any_comments_archived = any(map(lambda e : e.comments, keys))
+        any_metaonly_archived = any(map(lambda e : e.metaonly and e.archived, keys))
+        any_videos_archived = any(map(lambda e : e.archived and not e.metaonly, keys))
+        any_archived = {"video": any_videos_archived, "metaonly": any_metaonly_archived, "comments": any_comments_archived}
+        print(any_archived)
+        verdict = cls.create_verdict(any_archived)
+        print(verdict)
+        any_archived['human_friendly'] = verdict
+        print(any_archived)
+        return cls(id=id, status="ok", keys=keys, verdict=any_archived)
 
     def __str__(self):
         services = "Services:\n"
