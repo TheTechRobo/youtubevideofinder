@@ -197,7 +197,7 @@ class YouTubeResponse(JSONDataclass):
             id: The video ID
         """
         if not cls.verifyId(id):
-            return cls(status="bad.id", id=id, keys=[])
+            return cls(status="bad.id", id=id, keys=[], verdict={"video":False,"comments":False,"metaonly":False,"human_friendly":"Invalid video ID. "})
         keys = []
         services = cls._get_services()
         for subclass in services:
