@@ -100,6 +100,15 @@ async def noscript_load():
     """ % id, headers=(("FinUrl", f"/noscript_load_thing.html?id={id}"),))
     return response, 302
 
+@app.route("/api/coerce_to_id")
+async def coerce_to_id_endpoint():
+    if not request.args.get("d"):
+        return '"No d param provided"', 400
+    id = coerce_to_id(request.args['d'])
+    if not id:
+        return '"Could not parse the video ID out of that"', 400
+    return {"data":id}
+
 @app.route("/noscript_load_thing.html")
 async def load_thing():
     if not request.args.get("id"):
