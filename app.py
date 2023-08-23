@@ -116,6 +116,20 @@ async def load_thing():
     t = await youtube(3, request.args['id'], "youtube", json=False)
     return render_template("fid.html", resp=t)
 
+import json
+
+@app.after_request
+async def apply_json_contenttype(response):
+    if not request.path.startswith("/api"):
+        return response
+    try:
+        json.loads(response.get_data(True))
+    except Exception as ename:
+        # Not JSON
+        return response
+    response.content_type = "application/json"
+    return response
+
 @app.route("/")
 async def index():
     """
