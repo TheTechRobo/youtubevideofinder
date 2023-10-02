@@ -1,143 +1,109 @@
 <!DOCTYPE html>
 <html>
-  <head>
+<head>
     <title>API Documentation - YouTube Video Archive Search</title>
-<script defer data-domain="findyoutubevideo.thetechrobo.ca" src="https://analytic.thetechrobo.ca/js/script.js"></script>
-  <link rel="shortcut icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAIZJREFUOE+l0tENgCAMBNDrQroXA7GXLnSGxiZYaADpp6GPa1GwWbLZjxC4Emj4meNzDVAaew3R9wYgQJCAtOEEbZLPqXLLkQEFrCroToBPNwYK9CLrgBtjCJTLdAdBDXdgfX7j0QvodDM/EkmKdJ5lFtDRAmQqgaXsIUtAL8ky4JFfQL34BxrdPhGLmIGXAAAAAElFTkSuQmCC">
-<style>
-body {
-  font-family: Ubuntu, Arial, sans-serif;
-}
-.body-dark {
-  background-color: black;
-  color: white;
-}
-code {
-  background-color: black;
-  color: white;
-  font-size: 16px;
-}
-.code-dark {
-  background-color: darkblue;
-  color: lightgreen;
-}
-.banner {
-  background-color: cyan;
-  color: black;
-  text-align: center;
-  padding: 20px;
-}
-</style>
-    <script>
-      const DARKNESS = {
-        body: "body-dark",
-        code: "code-dark"
-      };
-      function toggleDarkness() {
-        if (localStorage.getItem("dark")) {
-          console.log("MODE = DARK");
-          lightMode();
-        }
-        else {
-          console.log("MODE != DARK");
-          darkMode();
-        }
-      }
-      function lightMode() {
-        for (const [key, value] of Object.entries(DARKNESS)) {
-          document.querySelectorAll(key).forEach((e) => e.classList.remove(value));
-        }
-        try {
-          localStorage.removeItem("dark");
-        }
-        catch(e) {
-          alert("Could not save preference!");
-        }
-      }
-      function darkMode() {
-        for (const [key, value] of Object.entries(DARKNESS)) {
-          document.querySelectorAll(key).forEach((e) => e.classList.add(value));
-        }
-        try {
-          localStorage.setItem("dark", true);
-        }
-        catch(e) {
-          alert("Could not save preference!");
-        }
-      }
-    </script>
-  </head>
-  <body>
-    <div class="banner">Please don't spam my servers - anyone that spams too much may be banned. Contact me on Discord (TheTechRobo#7420) or IRC (TheTechRobo on hackint) to discuss.</div>
-    <h1>API Documentation</h1>
-    <h3>Call: GET <code>/api/:version/:videoid</code></h3>
-    <h4>Current versions available: v2, v3</h4>
+    <script defer data-domain="findyoutubevideo.thetechrobo.ca"
+            src="https://analytic.thetechrobo.ca/js/script.js"></script>
+    <link rel="shortcut icon"
+          href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAIZJREFUOE+l0tENgCAMBNDrQroXA7GXLnSGxiZYaADpp6GPa1GwWbLZjxC4Emj4meNzDVAaew3R9wYgQJCAtOEEbZLPqXLLkQEFrCroToBPNwYK9CLrgBtjCJTLdAdBDXdgfX7j0QvodDM/EkmKdJ5lFtDRAmQqgaXsIUtAL8ky4JFfQL34BxrdPhGLmIGXAAAAAElFTkSuQmCC">
+    <link href="/static/normalize.css" rel="stylesheet">
+    <link href="/static/skeleton.css" rel="stylesheet">
+    <link href="/static/styles.css" rel="stylesheet">
+    <script src="/static/darkmode.js" type="text/javascript"></script>
+</head>
+<body>
+<div class="container" id="header-section">
+    <h4>
+        YouTube Video Finder
+        <span id="theme-select" onclick="toggleDarkness()" title="Toggle Dark Mode" style="float:right;">
+            <img src="/static/dark.svg" alt="">
+        </span>
+    </h4>
     <p>
-    <b>Fields</b>
-    {% if changelog[0] %}<div id="Fcl">
-      <u>Changelog</u>
-      <ul>
-        {% for log, logitems in changelog[0].items() %}
-          {% if log %}
+        Search several resources for archived YouTube video and metadata
+    </p>
+    <ul>
+        <li><a href="https://github.com/TheTechRobo/youtubevideofinder/">Source code (GitHub)</a></li>
+        <li><a href="/">Back to home</a></li>
+    </ul>
+</div>
+<div class="container">
+    <div class="banner">
+        Please don't spam my servers. Anyone that spams too much may be banned. Contact me on Discord
+        (TheTechRobo#7420) or IRC (TheTechRobo on hackint) to discuss.
+    </div>
+    <br>
+    <h4>API Documentation</h4>
+    <h6>Call: GET <code>/api/:version/:videoid</code></h6>
+    <h5>Current versions available: v2, v3</h5>
+    <p>
+        <b>Fields</b>
+        {% if changelog[0] %}
+    <div id="Fcl">
+        <u>Changelog</u>
+        <ul>
+            {% for log, logitems in changelog[0].items() %}
+            {% if log %}
             <li>Api version {{log}}</li>
             <ul>
-              {% for logitem in logitems %}
+                {% for logitem in logitems %}
                 <li>{{logitem}}</li>
-              {% endfor %}
+                {% endfor %}
             </ul>
-          {% endif %}
-        {% endfor %}
-      </ul>
-    </div>{%endif%}
+            {% endif %}
+            {% endfor %}
+        </ul>
+    </div>
+    {%endif%}
     <br>
     <dl>
-      {% if fields is mapping %}
+        {% if fields is mapping %}
         {% for field, value in fields.items() %}
-          <dt><code>
-              {{ field.name }}
-          </code> ({{ field.type}})</dt>
-          <dd>{{value}}
-          </dd>
+        <dt><code>{{ field.name }}</code> ({{ field.type}})
+        </dt>
+        <dd>{{value}}
+        </dd>
         {% endfor %}
-      {% elif fields is string %}
+        {% elif fields is string %}
         {{ fields.strip().replace("\n", "<br>") | safe }}
-      {% else %}
+        {% else %}
         Fail
-      {% endif %}
+        {% endif %}
     </dl>
     <b>Service Objects</b>
-    {% if changelog[1] %}<div id="Scl">
-      <u>Changelog</u>
-      <ul>
-        {% for log, logitems in changelog[1].items() %}
-          {% if log %}
+    {% if changelog[1] %}
+    <div id="Scl">
+        <u>Changelog</u>
+        <ul>
+            {% for log, logitems in changelog[1].items() %}
+            {% if log %}
             <li>Api version {{log}}</li>
             <ul>
-              {% for logitem in logitems %}
+                {% for logitem in logitems %}
                 <li>{{logitem}}</li>
-              {% endfor %}
+                {% endfor %}
             </ul>
-          {% endif %}
-        {% endfor %}
-      </ul>
-    </div>{%endif%}
+            {% endif %}
+            {% endfor %}
+        </ul>
+    </div>
+    {%endif%}
     {% if services is mapping %}
-      <dl>
+    <dl>
         {% for field, value in services.items() %}
-          <dt><code>{{field.name}}</code> ({{field.type}})</dt>
-          <dd>{{value}}</dd>
+        <dt><code>{{field.name}}</code> ({{field.type}})</dt>
+        <dd>{{value}}</dd>
         {%endfor%}
-      </dl>
+    </dl>
     {% elif services is string %}
-      {{ services.strip().replace("\n", "<br>") | safe }}
+    {{ services.strip().replace("\n", "<br>") | safe }}
     {% else %}
-      fail
+    fail
     {% endif %}
-  </body>
-    <script>
-if (localStorage.getItem("dark")) {
-        darkMode();
-        console.log("DarkModeSetup");
-}
-    </script>
+</div>
+<div class="container" id="footer-section">
+    <p style="text-align: center;"><i>Website created by <a href="https://thetechrobo.ca">TheTechRobo</a></i></p>
+</div>
+</body>
+<script>initDarkMode()</script>
 </html>

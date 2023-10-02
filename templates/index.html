@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>YouTube Video Finder</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <meta name="description" content="Easily search for YouTube videos in several archives."/>
+    <link rel="shortcut icon"
+          href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAIZJREFUOE+l0tENgCAMBNDrQroXA7GXLnSGxiZYaADpp6GPa1GwWbLZjxC4Emj4meNzDVAaew3R9wYgQJCAtOEEbZLPqXLLkQEFrCroToBPNwYK9CLrgBtjCJTLdAdBDXdgfX7j0QvodDM/EkmKdJ5lFtDRAmQqgaXsIUtAL8ky4JFfQL34BxrdPhGLmIGXAAAAAElFTkSuQmCC">
+    <link href="/static/normalize.css" rel="stylesheet">
+    <link href="/static/skeleton.css" rel="stylesheet">
+    <link href="/static/styles.css" rel="stylesheet">
+    <script src="/static/darkmode.js" type="text/javascript"></script>
+    <script src="/static/script.js" type="text/javascript"></script>
+    <script defer data-domain="findyoutubevideo.thetechrobo.ca" src="https://analytic.thetechrobo.ca/js/script.tagged-events.js"></script>
+    <script>
+        window.plausible = window.plausible || function () {
+            (window.plausible.q = window.plausible.q || []).push(arguments)
+        }
+    </script>
+</head>
+<body>
+<div class="container" id="header-section">
+    <h4>
+        YouTube Video Finder
+        <span id="theme-select" onclick="toggleDarkness()" title="Toggle Dark Mode" style="float:right;">
+            <img src="/static/dark.svg" alt="">
+        </span>
+    </h4>
+    <p>
+        Search several resources for archived YouTube video and metadata
+    </p>
+    <ul>
+        <li><a href="https://github.com/TheTechRobo/youtubevideofinder/">Source code (GitHub)</a></li>
+        <li><a href="/api">API documentation</a></li>
+    </ul>
+</div>
+<div class="container" id="input-section">
+    <form onsubmit="finishWrpa(document.getElementById('videoInput').value); return false;"
+          target="data-frame" action="/noscript_load.html">
+        <div class="row">
+            <div class="eight columns">
+                <input name="d" type="text" id="videoInput" placeholder="Enter video ID here..."
+                       value="{{default}}"/>
+            </div>
+            <div class="four columns">
+                <button action="submit" id="submit" class="btn btn-primary">Search for Captures</button>
+            </div>
+        </div>
+    </form>
+</div>
+<div class="container" id="data-section">
+    <div id="data">
+        <noscript>
+            <iframe name="data-frame" src="/noscript_init.html?d={{default_id}}" style="height:100%;width:100%;">
+                Your browser doesn't support JavaScript or iframes.<br/>
+                This website requires at least one of them.
+            </iframe>
+        </noscript>
+        <ul>
+            <li>Wayback Machine</li>
+            <li>Internet Archive/archive.org</li>
+            <li>GhostArchive</li>
+            <li>#youtubearchive</li>
+            <li>Filmot</li>
+            <li>Playboard.co</li>
+        </ul>
+    </div>
+</div>
+<div class="container" id="footer-section">
+    <p style="text-align: center;"><i>Website created by <a href="https://thetechrobo.ca">TheTechRobo</a></i></p>
+</div>
+<script>initDarkMode()</script>
+{% if default %}
+<script>finishWrpa("{{default}}");</script>
+{% endif %}
+</body>
+</html>
