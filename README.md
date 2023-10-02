@@ -12,15 +12,19 @@ There are docstrings included in the module (it is contained in `lostmediafinder
 
 ## Frontend
 ### Running in Docker(recommended):
-There is an included Dockerfile that should work 100% fine.
-  
-If it doesn't work that is considered a bug, as it is the only supported method of running the site.
+There is an included Dockerfile that should work 100% fine. (I'll publish it to Docker Hub or something soon™️.) Let me know if it doesn't work or if you need help.
 
-Instead of modiying the gunicorn config, use `GUNICORN_<VARIABLE_NAME>` environment variables; the config is setup to work with that. For example `GUNICORN_WORKERS`
+Instead of modiying the gunicorn config, use `GUNICORN_<VARIABLE_NAME>` environment variables; the config is setup to work with that. For example, `GUNICORN_WORKERS` is the number of threads that are spawned to handle requests.
+
+A command like this should work (runs on port 8000; change the `-p` flag to `<whatever port you want>:8000` to change that):
+
+```
+docker run --restart=unless-stopped -p 8000:8000 -e GUNICORN_WORKERS=4 <image name>
+```
 
 ## Licence
 
-Copyright (c) 2022 TheTechRobo
+Copyright (c) 2022-2023 TheTechRobo
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
