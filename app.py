@@ -94,7 +94,7 @@ async def noscript_load():
     <html>
     <head><meta http-equiv="refresh" content="0; url=/noscript_load_thing.html?id=%s" /></head>
     <body>
-    <img src="/static/ab79a231234507.564a1d23814ef.gif" width="25" height="25" />Loading could take up to 45 seconds.</img>
+    <img src="/static/loading.gif" width="25" height="25" />Loading could take up to 45 seconds.</img>
     </body>
     </html>
     """ % id, headers=(("FinUrl", f"/noscript_load_thing.html?id={id}"),))
@@ -137,7 +137,7 @@ async def index():
     """
     default = request.args.get("q") or ""
     default_id = coerce_to_id(default) or ""
-    return render_template("init.html", default=default,default_id=default_id)
+    return render_template("index.html", default=default, default_id=default_id)
 
 def parse_changelog(changelog):
     """

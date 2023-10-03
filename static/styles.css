@@ -1,0 +1,132 @@
+#header-section {
+    margin-top: 2.5rem;
+    margin-bottom: 0;
+}
+
+#input-section {
+    background-image: linear-gradient(#ffffff, #f4f4f4);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    padding: 30px;
+    border-radius: 15px;
+    margin-bottom: 2.5rem;
+}
+
+.banner {
+    background-image: linear-gradient(cyan, #00d4d4);
+    text-align: center;
+    color: black;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    padding: 30px;
+    border-radius: 15px;
+}
+
+#input-section input, #input-section form, #input-section button {
+    margin: 0
+}
+
+#videoInput {
+    width: 100%;
+}
+
+#submit {
+    width: 100%;
+}
+
+.container {
+    margin-bottom: 2.5rem;
+}
+
+body {
+    font-family: Ubuntu, Arial, sans-serif;
+}
+
+code {
+    background-color: black;
+    color: white;
+    font-size: 16px;
+}
+
+button[disabled] {
+    background-color: rgba(200, 200, 200, 1);
+    cursor: not-allowed;
+}
+
+:focus {
+    border: 1px solid cyan;
+}
+
+.green {
+    color: green;
+    background-color: black;
+}
+
+.red {
+    color: red;
+    background-color: black;
+}
+
+.yellow {
+    color: yellow;
+    background-color: black;
+}
+
+#theme-select {
+    height: 40px;
+    width: 40px;
+    cursor: pointer;
+    border-radius: 10px
+}
+
+#theme-select:hover {
+    animation-name: test1;
+    animation-duration: 0.5s;
+    animation-iteration-count: 1;
+    animation-fill-mode: forwards;
+    -webkit-animation-fill-mode: forwards;
+}
+
+@keyframes test1 {
+    from {
+        background-color: rgba(0, 0, 0, 0);
+    }
+    to {
+        background-color: rgba(100, 100, 100, 1);
+    }
+}
+
+p {
+  margin-bottom: 1rem
+}
+
+/* Dark Mode Adjustments */
+
+html.dark, html.dark body, html.dark input {
+  color: rgb(203 213 225) !important;
+  background-color: #1d243d !important;
+}
+
+html.dark #theme-select {
+  filter: invert(100%);
+}
+
+html.dark button {
+  background-color: rgba(50, 50, 50) !important;
+  color: rgb(203 213 225);
+}
+
+html.dark #input-section {
+  background-image: linear-gradient(#0e1323, #2e1323) !important;
+}
+
+html.dark a {
+  color: orange;
+}
+
+html.dark a:visited {
+  color: red;
+}
+
+html.dark code {
+    background-color: darkblue;
+    color: lightgreen;
+}
