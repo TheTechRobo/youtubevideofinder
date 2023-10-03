@@ -35,70 +35,67 @@
     <br>
     <h4>API Documentation</h4>
     <h6>Call: GET <code>/api/:version/:videoid</code></h6>
-    <h5>Current versions available: v2, v3</h5>
-    <p>
-        <b>Fields</b>
-        {% if changelog[0] %}
-    <div id="Fcl">
-        <u>Changelog</u>
-        <ul>
-            {% for log, logitems in changelog[0].items() %}
-            {% if log %}
-            <li>Api version {{log}}</li>
+    <p>Current versions available: v2, v3</p>
+    <b>Fields</b>
+    {% if changelog[0] %}
+        <div id="Fcl">
+            <u>Changelog</u>
             <ul>
-                {% for logitem in logitems %}
-                <li>{{logitem}}</li>
+                {% for log, logitems in changelog[0].items() %}
+                    {% if log %}
+                        <li>Api version {{ log }}</li>
+                        <ul>
+                            {% for logitem in logitems %}
+                                <li>{{ logitem }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
                 {% endfor %}
             </ul>
-            {% endif %}
-            {% endfor %}
-        </ul>
-    </div>
-    {%endif%}
+        </div>
+    {% endif %}
     <br>
     <dl>
         {% if fields is mapping %}
-        {% for field, value in fields.items() %}
-        <dt><code>{{ field.name }}</code> ({{ field.type}})
-        </dt>
-        <dd>{{value}}
-        </dd>
-        {% endfor %}
+            {% for field, value in fields.items() %}
+                <dt><code>{{ field.name }}</code> ({{ field.type }})</dt>
+                <dd>{{ value }}</dd>
+            {% endfor %}
         {% elif fields is string %}
-        {{ fields.strip().replace("\n", "<br>") | safe }}
+            {{ fields.strip().replace("\n", "<br>") | safe }}
         {% else %}
-        Fail
+            Fail
         {% endif %}
     </dl>
     <b>Service Objects</b>
     {% if changelog[1] %}
-    <div id="Scl">
-        <u>Changelog</u>
-        <ul>
-            {% for log, logitems in changelog[1].items() %}
-            {% if log %}
-            <li>Api version {{log}}</li>
+        <div id="Scl">
+            <u>Changelog</u>
             <ul>
-                {% for logitem in logitems %}
-                <li>{{logitem}}</li>
+                {% for log, logitems in changelog[1].items() %}
+                    {% if log %}
+                        <li>Api version {{ log }}</li>
+                        <ul>
+                            {% for logitem in logitems %}
+                                <li>{{ logitem }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
                 {% endfor %}
             </ul>
-            {% endif %}
-            {% endfor %}
-        </ul>
-    </div>
-    {%endif%}
+        </div>
+    {% endif %}
     {% if services is mapping %}
-    <dl>
-        {% for field, value in services.items() %}
-        <dt><code>{{field.name}}</code> ({{field.type}})</dt>
-        <dd>{{value}}</dd>
-        {%endfor%}
-    </dl>
+        <dl>
+            {% for field, value in services.items() %}
+                <dt><code>{{ field.name }}</code> ({{ field.type }})</dt>
+                <dd>{{ value }}</dd>
+            {% endfor %}
+        </dl>
     {% elif services is string %}
-    {{ services.strip().replace("\n", "<br>") | safe }}
+        {{ services.strip().replace("\n", "<br>") | safe }}
     {% else %}
-    fail
+        fail
     {% endif %}
 </div>
 <div class="container" id="footer-section">
