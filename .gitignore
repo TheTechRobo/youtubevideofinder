@@ -2,3 +2,4 @@ config.py
 README.md.backup
 *.pyc
 nohup.out
+.idea
