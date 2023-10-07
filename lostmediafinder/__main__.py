@@ -3,6 +3,8 @@ The CLI interface of LostMediaFinder.
 None of this is public API!
 """
 
+import asyncio
+
 import click
 from switch import Switch
 
@@ -27,7 +29,7 @@ def youtube(ctx, id: str, format: str) -> int:
     """
     click.echo("\033[1m\033[4m\033[1;31mUsing LostMediaFinder from the command-line is unstable!\033[0m", err=True)
     click.echo("Generating report, this could take some time...", err=True)
-    response = YouTubeResponse.generate(id)
+    response = asyncio.run(YouTubeResponse.generate(id))
     if response.status == "bad.id":
         raise ValueError("Bad video ID - does not match regex")
     with Switch(format) as case:
