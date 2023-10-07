@@ -7,6 +7,8 @@ import time
 import typing
 import re
 
+import asyncio
+import aiohttp
 import cachetools
 import asyncache
 
@@ -69,12 +71,12 @@ class Service(JSONDataclass):
         return val
 
     @classmethod
-    async def _run(cls, id, includeRaw=True, asynchronous=False) -> T:
+    async def _run(cls, id, session: aiohttp.ClientSession, includeRaw=True) -> T:
         raise NotImplementedError("Subclass Service and impl the _run function")
 
     @classmethod
     @asyncache.cached(cachetools.TTLCache(1024, 600))
-    async def run(cls, id: str, includeRaw=True, **kwargs):
+    async def run(cls, id: str, session: aiohttp.ClientSession, includeRaw=True, **kwargs):
         """
         Retrieves the data from the service.
         Arguments:
@@ -82,7 +84,7 @@ class Service(JSONDataclass):
             includeRaw (bool): Whether or not to include the raw data as sent from the service. If you don't need this data, turn this off; it's only the default for compatibility.
         """
         try:
-            return await cls._run(id, includeRaw=includeRaw, **kwargs)
+            return await cls._run(id, session, includeRaw=includeRaw, **kwargs)
         except Exception as ename: # pylint: disable=broad-except
             note = f"An error occured while retrieving data from {cls.getName()}."
             print(ename)
@@ -109,7 +111,9 @@ class Service(JSONDataclass):
   Archived? {self.archived} {meta} {lien}
   \t{self.note.strip()}
 """
-        return string
+        if self.error:
+            string += f"\t{self.error}\n"
+        return string + "\n"
 
 class YouTubeService(Service): # pylint: disable=abstract-method
     pass
@@ -132,14 +136,13 @@ class YouTubeResponse(JSONDataclass):
     verdict: dict
     api_version: int = 3
 
-    def coerce_to_api_version(selfNEW, target):
+    def coerce_to_api_version(selfNEW, target): # pylint: disable=no-self-argument
         """
         Downgrades the API version to one of your choice, then returns it.
 
         Arguments:
             target (int): The target API version. Must be lower than self.api_version
         """
-        import copy
         self = copy.deepcopy(selfNEW)
         currentApiVersion = self.api_version
         if currentApiVersion < target:
@@ -152,7 +155,7 @@ class YouTubeResponse(JSONDataclass):
         assert self.api_version == target
         return self
 
-    def _convert_v3_to_v2(selfNEW):
+    def _convert_v3_to_v2(selfNEW): # pylint: disable=no-self-argument
         self = copy.deepcopy(selfNEW)
         assert self.api_version == 3
         self.api_version = 2
@@ -190,7 +193,7 @@ class YouTubeResponse(JSONDataclass):
         return verdict
 
     @classmethod
-    async def generate(cls, id, asyncio=False):
+    async def generate(cls, id):
         """
         Runs all the Services.
         Arguments:
@@ -200,9 +203,12 @@ class YouTubeResponse(JSONDataclass):
             return cls(status="bad.id", id=id, keys=[], verdict={"video":False,"comments":False,"metaonly":False,"human_friendly":"Invalid video ID. "})
         keys = []
         services = cls._get_services()
-        for subclass in services:
-            result = None
-            result = await subclass.run(id)
+        coroutines = []
+        async with aiohttp.ClientSession() as session:
+            for service in services:
+                coroutines.append(service.run(id, session))
+            results = await asyncio.gather(*coroutines)
+        for result in results:
             keys.append(result)
         any_comments_archived = any(map(lambda e : e.comments, keys))
         any_metaonly_archived = any(map(lambda e : e.metaonly and e.archived, keys))
