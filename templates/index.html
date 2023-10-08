@@ -32,6 +32,28 @@
     <ul>
         <li><a href="https://github.com/TheTechRobo/youtubevideofinder/">Source code (GitHub)</a></li>
         <li><a href="/api">API documentation</a></li>
+        <details>
+            <summary>How do I use this?</summary>
+            <p>This is a website that will help you find a private or deleted YouTube video if you have the link.</p>
+            <p><b>If you don't have the link, this site won't help you.</b></p>
+            <p>Copy the link and paste it into the box above. Then click "Search for Captures".
+                Some of the services this website queries are slow, so be patient.</p>
+            <p>
+                Once all the services have been queried, the results will appear. The results section
+                shows the name of each service, and whether the service has the video or not.
+                A link to the archived material will be provided if there is one. If there isn't,
+                there should be some extra text provided that sheds some light on how to retrieve it.
+            </p>
+            <p><b>Metadata</b> is information about the video. This includes the title and description.</p>
+            <p>Metadata can be useful for searching further. It's always possible there's a reupload
+                of the video that this website simply didn't find, and knowing the title and description
+                can be a big help in finding one.
+            </p>
+            <p>If you have any questions or need further help, contact me! I can be reached by email at
+                thetechrobo@proton.me, on IRC with the username TheTechRobo (I'm on Libera.chat,
+                hackint, and OFTC), and on Discord with the username thetechrobo.
+            </p>
+        </details>
     </ul>
 </div>
 <div class="container" id="input-section">
@@ -80,7 +102,7 @@
 </div>
 <script>initDarkMode()</script>
 {% if default %}
-<script>finishWrpa("{{default}}");</script>
+  <script>finishWrpa("{{default}}");</script>
 {% endif %}
 </body>
 </html>

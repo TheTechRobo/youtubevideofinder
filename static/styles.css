@@ -136,3 +136,7 @@ html.dark code {
     background-color: darkblue;
     color: lightgreen;
 }
+
+details > summary {
+    display: list-item;
+}

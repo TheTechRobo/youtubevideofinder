@@ -3,3 +3,4 @@ README.md.backup
 *.pyc
 nohup.out
 .idea
+static/ign
