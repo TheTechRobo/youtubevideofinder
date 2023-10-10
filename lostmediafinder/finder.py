@@ -159,7 +159,7 @@ class Filmot(YouTubeService):
         cls.lastretrieved = time.time()
         lastupdated = time.time()
         async with session.get(f"https://filmot.com/api/getvideos?key={key}&id={id}&flags=1") as resp:
-            metadata = await resp.json()
+            metadata = await resp.json(content_type=None)
         rawraw = metadata if includeRaw else None
         if len(metadata) > 0: # pylint: disable=simplifiable-if-statement
             archived = True
