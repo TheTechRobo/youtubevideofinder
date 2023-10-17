@@ -75,6 +75,16 @@ class InternetArchive(YouTubeService):
             note = "Even if it isn't found here, it might still be in the Internet Archive. This site only checks for certain item identifiers."
             if is_dark:
                 note = "An item was found, but it is currently unavailable to the general public.<br>" + note
+            # Helper source code is at endpoint /source_code
+            # This is the stash of IDs to idents #youtubearchive gave me
+            # TODO: Should this be moved to the #youtubearchive scraper?
+            helper_url = f"https://fyt-helper.thetechrobo.ca/ia_extra/{ident}"
+            async with session.get(helper_url) as resp:
+                if resp.status == 200:
+                    archived = True
+                    j = await resp.json()
+                    lien = f"https://archive.org/details/{j['item']}"
+                    note = "The item found was a generic channel item. It may contain multiple videos."
         capcount = int(archived)
         return cls(
             archived=archived, capcount=capcount, available=lien, lastupdated=time.time(), name=cls.getName(), note=note,
