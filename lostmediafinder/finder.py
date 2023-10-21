@@ -231,6 +231,7 @@ class Hobune(YouTubeService):
         available = None
         lastupdated = time.time()
         for url in urls_to_try:
+            url = url.format(id)
             async with session.get(url, headers={"User-Agent": user_agent}, timeout=5) as resp:
                 code = resp.status
                 raw.append(code)
