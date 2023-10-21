@@ -216,3 +216,36 @@ class Playboard(YouTubeService):
                 available=available
         )
 
+class Hobune(YouTubeService):
+    """
+    Queries Hobune.stream for the video in question.
+    """
+    name = "Hobune.stream"
+
+    @classmethod
+    async def _run(cls, id, session: aiohttp.ClientSession, includeRaw=True):
+        user_agent = "FindYoutubeVideo/1.0 operated by thetechrobo@proton.me"
+        urls_to_try = ("https://hobune.stream/videos/{}", "https://hobune.stream/tpa-h/videos/{}")
+        raw = []
+        archived = False
+        available = None
+        lastupdated = time.time()
+        for url in urls_to_try:
+            async with session.get(url, headers={"User-Agent": user_agent}, timeout=5) as resp:
+                code = resp.status
+                raw.append(code)
+            if code == 200:
+                archived = True
+                available = url
+                break
+            elif code == 404:
+                archived = False
+                available = None
+            else:
+                raise RuntimeError("Hobune.stream returned invalid status code %s" % code)
+        return cls(
+            archived=archived, capcount=1 if archived else 0,
+            lastupdated=lastupdated, name=cls.getName(), note="",
+            rawraw=raw, metaonly=False, comments=False, available=available
+        )
+
