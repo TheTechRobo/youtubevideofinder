@@ -129,7 +129,6 @@ class ArchiveOrgCDX(YouTubeService):
             'maxresdefault.jpg',
             'high.jpg',
             '0.jpg',
-            'high.jpg',
             'medium.jpg',
             'default.jpg',
             '1.jpg',
