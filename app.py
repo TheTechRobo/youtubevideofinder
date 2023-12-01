@@ -1,10 +1,11 @@
 from flask import Flask, render_template, request, Response, redirect
-
-import re, urllib.parse
-
+import re, urllib.parse, yaml
 import lostmediafinder
 
 app = Flask(__name__)
+
+with open('config.yml', 'r') as file:
+    config_yml = yaml.safe_load(file)
 
 @app.route("/robots.txt")
 async def robots():
@@ -76,6 +77,14 @@ def coerce_to_id(vid):
             return newVid
     return None
 
+def get_enabled_methods():
+    titles = []
+    for key in config_yml["methods"]:
+        method = config_yml["methods"][key]
+        if method["enabled"]:
+            titles.append(method["title"])
+    return titles
+
 @app.route("/noscript_load.html")
 async def noscript_load():
     if not request.args.get("d"):
@@ -137,7 +146,11 @@ async def index():
     """
     default = request.args.get("q") or ""
     default_id = coerce_to_id(default) or ""
-    return render_template("index.html", default=default, default_id=default_id)
+    return render_template("index.html",
+                           default=default,
+                           default_id=default_id,
+                           methods=get_enabled_methods(),
+                           )
 
 def parse_changelog(changelog):
     """
@@ -197,4 +210,7 @@ async def api():
     # Parse the attributes list
     responseDocstring = await parse_lines(rChangelog[0].split("Attributes:\n")[1].strip().split("\n"))
     serviceDocstring  = await parse_lines(sChangelog[0].split("Attributes:\n")[1].strip().split("\n"))
-    return render_template("api.html", fields=responseDocstring, services=serviceDocstring, changelog=changelog)
+    return render_template("api.html",
+                           fields=responseDocstring,
+                           services=serviceDocstring,
+                           changelog=changelog)

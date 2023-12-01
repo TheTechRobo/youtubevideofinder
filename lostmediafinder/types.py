@@ -14,7 +14,6 @@ import asyncache
 
 from snscrape.base import _JSONDataclass as JSONDataclass
 
-import config
 def update_cnfig(ya, filmot, version):
     """
     Updates the configuration for the #youtubearchive and Filmot services.

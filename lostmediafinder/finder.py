@@ -2,23 +2,28 @@
 All the Service implementations live here.
 """
 
-import random
-import time
-import urllib.parse
-
-import aiohttp
+import random, time, urllib.parse, aiohttp, yaml
 from switch import Switch
-
 from .types import YouTubeService, T
+
+with open('config.yml', 'r') as file:
+    config_yml = yaml.safe_load(file)
+    methods = config_yml["methods"]
+
+def assert_enabled(key):
+    method = methods[key]
+    assert method["enabled"], f"{method['title']} is not enabled."
 
 class WaybackMachine(YouTubeService):
     """
     Queries the Wayback Machine for the video you requested.
     """
-    name = "Wayback Machine"
+    name = methods["ia_wayback"]["title"]
 
     @classmethod
     async def _run(cls, id, session: aiohttp.ClientSession, includeRaw=True) -> T:
+        assert_enabled("ia_wayback")
+
         ismeta = False
         lien = f"https://web.archive.org/web/2oe_/http://wayback-fakeurl.archive.org/yt/{id}"
         async with session.head(lien, allow_redirects=False, timeout=15) as response:
@@ -42,11 +47,11 @@ class WaybackMachine(YouTubeService):
                 note="", metaonly=ismeta, comments=False
         )
 
-class InternetArchive(YouTubeService):
+class ArchiveOrgDetails(YouTubeService):
     """
     Queries the Internet Archive for the video you requested.
     """
-    name = "Internet Archive/archive.org"
+    name = methods["ia_details"]["title"]
     items_tried = [
         "youtube-%s",
         "youtube_%s",
@@ -55,6 +60,8 @@ class InternetArchive(YouTubeService):
 
     @classmethod
     async def _run(cls, id, session: aiohttp.ClientSession, includeRaw=True) -> T:
+        assert_enabled("ia_details")
+
         responses = []
         is_dark = False
         for template in cls.items_tried:
@@ -91,12 +98,74 @@ class InternetArchive(YouTubeService):
             rawraw=rawraw, metaonly=False, comments=False
         )
 
+
+class ArchiveOrgCDX(YouTubeService):
+    """
+    Queries the Archive.org CDX for an archived video thumb
+    """
+    name = methods["ia_cdx"]["title"]
+
+    @classmethod
+    async def _run(cls, id, session: aiohttp.ClientSession, includeRaw=True) -> T:
+        assert_enabled("ia_cdx")
+
+        cdx_urls = [
+            f"https://web.archive.org/cdx/search/cdx?url=i.ytimg.com/vi/{id}*&collapse=digest&filter=statuscode:200&mimetype:image/jpeg&output=json",
+            f"https://web.archive.org/cdx/search/cdx?url=s.ytimg.com/vi/{id}*&collapse=digest&filter=statuscode:200&mimetype:image/jpeg&output=json",
+            f"https://web.archive.org/cdx/search/cdx?url=img.youtube.com/vi/{id}*&collapse=digest&filter=statuscode:200&mimetype:image/jpeg&output=json",
+        ]
+
+        results = []
+        for cdx in cdx_urls:
+            async with session.get(cdx, timeout=12) as resp:
+                metadata = await resp.json()
+            for result in metadata:
+                if result[0] != 'urlkey':
+                    results.append(result)
+
+        # sort and select the most recent of highest quality version available
+        results.sort(key=lambda x: x[1], reverse=True)
+        quality_order = [
+            'maxresdefault.jpg',
+            'high.jpg',
+            '0.jpg',
+            'high.jpg',
+            'medium.jpg',
+            'default.jpg',
+            '1.jpg',
+            '2.jpg',
+            '3.jpg',
+        ]
+        def get_int(url):
+            for i in range(len(quality_order)):
+                if quality_order[i] in url:
+                    return i
+
+            return len(quality_order) + 1
+        results.sort(key=lambda x: get_int(x[2]))
+
+        if len(results) > 0:
+            lien = f"https://web.archive.org/web/{results[0][1]}/{results[0][2]}"
+            ismeta = True
+            archived = True
+
+        return cls(
+                archived=archived, capcount=int(archived), rawraw=None,
+                available=lien, lastupdated=time.time(), name=cls.getName(),
+                note="", metaonly=ismeta, comments=False
+        )
+
+
 class GhostArchive(YouTubeService):
     """
     Queries GhostArchive for the video you requested.
     """
+    name = methods["ghostarchive"]["title"]
+
     @classmethod
     async def _run(cls, id, session: aiohttp.ClientSession, includeRaw=True) -> T:
+        assert_enabled("ghostarchive")
+
         link = f"https://ghostarchive.org/varchive/{id}"
         async with session.get(link) as resp:
             code = resp.status
@@ -119,20 +188,23 @@ class GhostArchive(YouTubeService):
             metaonly=False, comments=False
         )
 
-class Ya(YouTubeService):
+class HackintYa(YouTubeService):
     """
     Queries #youtubearchive for the video you requested.
     """
-    name = "#youtubearchive"
+    name = methods["hackint_ya"]["title"]
     note = ("To retrieve a video from #youtubearchive, join #youtubearchive on hackint IRC and ask for help. "
         "Remember <a href='https://wiki.archiveteam.org/index.php/Archiveteam:IRC#How_do_I_chat_on_IRC?'>IRC etiquette</a>!"
     )
 
     @classmethod
     async def _run(cls, id, session: aiohttp.ClientSession, includeRaw=True):
+        assert_enabled("hackint_ya")
+        username = methods["hackint_ya"]["username"]
+        password = methods["hackint_ya"]["password"]
+
         vid = id
-        assert cls._getFromConfig("ya", "enabled"), "#youtubearchive API access is not enabled"
-        auth = aiohttp.BasicAuth(cls._getFromConfig("ya", "username"), cls._getFromConfig("ya", "password"))
+        auth = aiohttp.BasicAuth(username, password)
         comments = False
         async with session.get("https://ya.borg.xyz/cgi-bin/capture-count?v=" + vid, auth=auth, timeout=5) as resp:
             count = await resp.text()
@@ -155,14 +227,15 @@ class Filmot(YouTubeService):
     """
     Queries Filmot for the video you requested.
     """
+    name = methods["filmot"]["title"]
     lastretrieved: int = 0
     cooldown: int = 2
 
     @classmethod
     async def _run(cls, id, session: aiohttp.ClientSession, includeRaw=True) -> T:
-        enabled = cls._getFromConfig("filmot", "enabled")
-        assert enabled, "Filmot API access is not enabled."
-        key = cls._getFromConfig("filmot", "key")
+        assert_enabled("filmot")
+        key = methods["filmot"]["api_key"]
+
         while time.time() - cls.lastretrieved < cls.cooldown:
             time.sleep(0.1)
         lastupdated = time.time()
@@ -189,11 +262,13 @@ class Playboard(YouTubeService):
     Queries Playboard.co for whether it's archived or not.
     Playboard is metadata-only as far as I know.
     """
-    name = "Playboard.co"
+    name = methods["playboard_co"]["title"]
     note = "The Playboard scraper is unreliable; please verify values yourself."
 
     @classmethod
     async def _run(cls, id, session: aiohttp.ClientSession, includeRaw=True):
+        assert_enabled("playboard_co")
+
         user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.%s.0.0 Safari/537.36"
         user_agent = user_agent % random.randint(0, 100)
         url = f"https://playboard.co/en/video/{id}"
@@ -220,10 +295,11 @@ class Hobune(YouTubeService):
     """
     Queries Hobune.stream for the video in question.
     """
-    name = "Hobune.stream"
 
     @classmethod
     async def _run(cls, id, session: aiohttp.ClientSession, includeRaw=True):
+        assert_enabled("hobune_stream")
+
         user_agent = "FindYoutubeVideo/1.0 operated by thetechrobo@proton.me"
         urls_to_try = ("https://hobune.stream/videos/{}", "https://hobune.stream/tpa-h/videos/{}")
         raw = []

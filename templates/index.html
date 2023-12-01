@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <title>YouTube Video Finder</title>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
@@ -88,13 +88,9 @@
             </style>
         </noscript>
         <ul id="data-ul">
-            <li>Wayback Machine</li>
-            <li>Internet Archive/archive.org</li>
-            <li>GhostArchive</li>
-            <li>#youtubearchive</li>
-            <li>Filmot</li>
-            <li>Playboard.co</li>
-            <li>Hobune.stream</li>
+            {% for title in methods %}
+                <li>{{ title }}</li>
+            {% endfor %}
         </ul>
     </div>
 </div>

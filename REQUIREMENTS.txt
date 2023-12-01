@@ -6,3 +6,4 @@ nest_asyncio
 cachetools
 click
 asyncache
+pyyaml

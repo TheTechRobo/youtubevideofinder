@@ -1,0 +1,37 @@
+version: 3
+
+methods:
+  ia_wayback:
+    title: Wayback Machine
+    enabled: true
+
+  ia_details:
+    title: Archive.org Details
+    enabled: true
+
+  ia_cdx:
+    title: Archive.org CDX
+    enabled: true
+
+  ghostarchive:
+    title: GhostArchive
+    enabled: true
+
+  hackint_ya:
+    title: "#youtubearchive"
+    enabled: false
+    username:
+    password:
+
+  filmot:
+    title: Filmot
+    enabled: false
+    api_key:
+
+  playboard_co:
+    title: playboard.co
+    enabled: true
+
+  hobune_archive:
+    title: hobune.archive
+    enabled: true

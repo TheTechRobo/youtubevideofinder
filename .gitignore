@@ -1,6 +1,7 @@
-config.py
 README.md.backup
 *.pyc
 nohup.out
 .idea
 static/ign
+config.py
+config.yml
