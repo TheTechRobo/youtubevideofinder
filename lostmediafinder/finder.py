@@ -127,9 +127,12 @@ class ArchiveOrgCDX(YouTubeService):
         results.sort(key=lambda x: x[1], reverse=True)
         quality_order = [
             'maxresdefault.jpg',
+            'hqdefault.jpg',
             'high.jpg',
             '0.jpg',
+            'mqdefault.jpg',
             'medium.jpg',
+            'sddefault.jpg',
             'default.jpg',
             '1.jpg',
             '2.jpg',
@@ -147,6 +150,10 @@ class ArchiveOrgCDX(YouTubeService):
             lien = f"https://web.archive.org/web/{results[0][1]}/{results[0][2]}"
             ismeta = True
             archived = True
+        else:
+            lien = None
+            ismeta = False
+            archived = False
 
         return cls(
                 archived=archived, capcount=int(archived), rawraw=None,
