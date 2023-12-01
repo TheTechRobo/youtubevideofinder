@@ -14,17 +14,6 @@ import asyncache
 
 from snscrape.base import _JSONDataclass as JSONDataclass
 
-def update_cnfig(ya, filmot, version):
-    """
-    Updates the configuration for the #youtubearchive and Filmot services.
-
-    Check lostmediafinder.config for documentation.
-    """
-
-    config.ya = ya
-    config.filmot = filmot
-    config.config_version = version
-
 T = typing.TypeVar("T", bound="YouTubeService") # pylint: disable=invalid-name
 # (this name is fine)
 

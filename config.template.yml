@@ -29,9 +29,9 @@ methods:
     api_key:
 
   playboard_co:
-    title: playboard.co
+    title: Playboard.co
     enabled: true
 
-  hobune_archive:
-    title: hobune.archive
+  hobune_stream:
+    title: Hobune.stream
     enabled: true

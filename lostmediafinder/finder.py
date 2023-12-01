@@ -301,6 +301,7 @@ class Hobune(YouTubeService):
     """
     Queries Hobune.stream for the video in question.
     """
+    name = methods["hobune_stream"]["title"]
 
     @classmethod
     async def _run(cls, id, session: aiohttp.ClientSession, includeRaw=True):
