@@ -146,11 +146,7 @@ async def index():
     """
     default = request.args.get("q") or ""
     default_id = coerce_to_id(default) or ""
-    return render_template("index.html",
-                           default=default,
-                           default_id=default_id,
-                           methods=get_enabled_methods(),
-                           )
+    return render_template("index.html", default=default, default_id=default_id, methods=get_enabled_methods())
 
 def parse_changelog(changelog):
     """
@@ -210,7 +206,4 @@ async def api():
     # Parse the attributes list
     responseDocstring = await parse_lines(rChangelog[0].split("Attributes:\n")[1].strip().split("\n"))
     serviceDocstring  = await parse_lines(sChangelog[0].split("Attributes:\n")[1].strip().split("\n"))
-    return render_template("api.html",
-                           fields=responseDocstring,
-                           services=serviceDocstring,
-                           changelog=changelog)
+    return render_template("api.html", fields=responseDocstring, services=serviceDocstring, changelog=changelog)
