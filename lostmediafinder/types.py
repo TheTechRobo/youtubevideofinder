@@ -11,8 +11,13 @@ import asyncio
 import aiohttp
 import cachetools
 import asyncache
+import yaml
 
 from snscrape.base import _JSONDataclass as JSONDataclass
+
+with open('config.yml', 'r') as file:
+    config_yml = yaml.safe_load(file)
+    methods = config_yml["methods"]
 
 T = typing.TypeVar("T", bound="YouTubeService") # pylint: disable=invalid-name
 # (this name is fine)
@@ -51,9 +56,18 @@ class Service(JSONDataclass):
     suppl: str = ""
     error: bool = None
 
+    configId = None
+
     @classmethod
     async def _run(cls, id, session: aiohttp.ClientSession, includeRaw=True) -> T:
         raise NotImplementedError("Subclass Service and impl the _run function")
+
+    @classmethod
+    @property
+    def enabled(cls):
+        configId = cls.configId
+        serviceConfig = methods[configId]
+        return serviceConfig['enabled']
 
     @classmethod
     @asyncache.cached(cachetools.TTLCache(1024, 600))
@@ -150,8 +164,14 @@ class YouTubeResponse(JSONDataclass):
         return self
 
     @classmethod
-    def _get_services(cls):
-        return YouTubeService.__subclasses__()
+    def _get_services(cls) -> list['Service']:
+        potentialServices = YouTubeService.__subclasses__()
+        services = []
+        for potentialService in potentialServices:
+            if not potentialService.enabled:
+                continue
+            services.append(potentialService)
+        return services
 
     @staticmethod
     def verifyId(id: str) -> bool:
