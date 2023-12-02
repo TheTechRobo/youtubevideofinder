@@ -51,13 +51,6 @@ class Service(JSONDataclass):
     suppl: str = ""
     error: bool = None
 
-    @staticmethod
-    def _getFromConfig(key, key1=None):
-        val = getattr(config, key)
-        if key1:
-            val = getattr(val, key1)
-        return val
-
     @classmethod
     async def _run(cls, id, session: aiohttp.ClientSession, includeRaw=True) -> T:
         raise NotImplementedError("Subclass Service and impl the _run function")
