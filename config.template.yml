@@ -23,6 +23,15 @@ methods:
     username:
     password:
 
+  distributed_youtube_archive:
+    title: "Distributed YouTube Archive"
+    enabled: false
+    key: ""
+
+  hobune_stream:
+    title: Hobune.stream
+    enabled: true
+
   filmot:
     title: Filmot
     enabled: false
@@ -32,6 +41,3 @@ methods:
     title: Playboard.co
     enabled: true
 
-  hobune_stream:
-    title: Hobune.stream
-    enabled: true
