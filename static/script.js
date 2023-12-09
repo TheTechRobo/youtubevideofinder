@@ -78,7 +78,7 @@ function finish(vid1) {
                 } else {
                     colour = "red";
                 }
-                var isarchived = wbm.archived ? "Archived" : "Not Archived";
+                var isarchived = wbm.archived ? "Available" : "Not Available";
                 if (wbm.error !== null) {
                     isarchived = "Unknown";
                     wbm.note = wbm.note + wbm.error;

@@ -1,6 +1,10 @@
 version: 3
 
 methods:
+  youtubei:
+    title: YouTube
+    enabled: true
+
   ia_wayback:
     title: Wayback Machine
     enabled: true

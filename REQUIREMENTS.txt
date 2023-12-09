@@ -7,3 +7,4 @@ cachetools
 click
 asyncache
 pyyaml
+innertube

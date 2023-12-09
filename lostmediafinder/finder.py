@@ -2,9 +2,41 @@
 All the Service implementations live here.
 """
 
-import random, time, urllib.parse, aiohttp, asyncio
+import random, time, urllib.parse, aiohttp, asyncio, requests, json, innertube
 from switch import Switch
 from .types import YouTubeService, T, methods
+
+youtubei = innertube.InnerTube("WEB")
+
+class YouTubeI(YouTubeService):
+    """
+    Queries innertube to see if the video is still available on YouTube.
+    """
+    name = methods["youtubei"]["title"]
+    configId = "youtubei"
+
+    @classmethod
+    async def _run(cls, id, session: aiohttp.ClientSession, includeRaw=True) -> T:
+        data = youtubei.player(id)
+        code = 200
+
+        rawraw = code if includeRaw else None
+        archived = None
+        link = f"https://youtu.be/{id}"
+
+        if "playabilityStatus" in data and data["playabilityStatus"]["status"] == "OK":
+            print(data["playabilityStatus"]["status"])
+            archived = True
+        else:
+            archived = False
+
+        capcount = int(archived)
+        available = link if archived else None
+        lastupdated = time.time()
+        return cls(
+            archived=archived, available=available, capcount=capcount, lastupdated=lastupdated, name=cls.getName(), note="", rawraw=rawraw,
+            metaonly=False, comments=False
+        )
 
 class WaybackMachine(YouTubeService):
     """
