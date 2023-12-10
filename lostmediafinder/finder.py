@@ -106,7 +106,7 @@ class ArchiveOrgCDX(YouTubeService):
             f"https://web.archive.org/cdx/search/cdx?url=i4.ytimg.com/vi/{id}*&collapse=digest&filter=statuscode:200&mimetype:image/jpeg&output=json",
             f"https://web.archive.org/cdx/search/cdx?url=i.ytimg.com/vi_webp/{id}*&collapse=digest&filter=statuscode:200&mimetype:image/webp&output=json",
             f"https://web.archive.org/cdx/search/cdx?url=s.ytimg.com/vi/{id}*&collapse=digest&filter=statuscode:200&mimetype:image/jpeg&output=json",
-            f"https://web.archive.org/cdx/search/cdx?url=https://ytimg.googleusercontent.com/vi/{id}*&collapse=digest&filter=statuscode:200&mimetype:image/webp&output=json",
+            f"https://web.archive.org/cdx/search/cdx?url=ytimg.googleusercontent.com/vi/{id}*&collapse=digest&filter=statuscode:200&mimetype:image/webp&output=json",
             f"https://web.archive.org/cdx/search/cdx?url=img.youtube.com/vi/{id}*&collapse=digest&filter=statuscode:200&mimetype:image/jpeg&output=json",
         ]
 
