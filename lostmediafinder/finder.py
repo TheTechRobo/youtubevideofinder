@@ -100,7 +100,13 @@ class ArchiveOrgCDX(YouTubeService):
     async def _run(cls, id, session: aiohttp.ClientSession, includeRaw=True) -> T:
         cdx_urls = [
             f"https://web.archive.org/cdx/search/cdx?url=i.ytimg.com/vi/{id}*&collapse=digest&filter=statuscode:200&mimetype:image/jpeg&output=json",
+            f"https://web.archive.org/cdx/search/cdx?url=i1.ytimg.com/vi/{id}*&collapse=digest&filter=statuscode:200&mimetype:image/jpeg&output=json",
+            f"https://web.archive.org/cdx/search/cdx?url=i2.ytimg.com/vi/{id}*&collapse=digest&filter=statuscode:200&mimetype:image/jpeg&output=json",
+            f"https://web.archive.org/cdx/search/cdx?url=i3.ytimg.com/vi/{id}*&collapse=digest&filter=statuscode:200&mimetype:image/jpeg&output=json",
+            f"https://web.archive.org/cdx/search/cdx?url=i4.ytimg.com/vi/{id}*&collapse=digest&filter=statuscode:200&mimetype:image/jpeg&output=json",
+            f"https://web.archive.org/cdx/search/cdx?url=i.ytimg.com/vi_webp/{id}*&collapse=digest&filter=statuscode:200&mimetype:image/webp&output=json",
             f"https://web.archive.org/cdx/search/cdx?url=s.ytimg.com/vi/{id}*&collapse=digest&filter=statuscode:200&mimetype:image/jpeg&output=json",
+            f"https://web.archive.org/cdx/search/cdx?url=ytimg.googleusercontent.com/vi/{id}*&collapse=digest&filter=statuscode:200&mimetype:image/webp&output=json",
             f"https://web.archive.org/cdx/search/cdx?url=img.youtube.com/vi/{id}*&collapse=digest&filter=statuscode:200&mimetype:image/jpeg&output=json",
         ]
 
@@ -116,12 +122,12 @@ class ArchiveOrgCDX(YouTubeService):
         results.sort(key=lambda x: x[1], reverse=True)
         quality_order = [
             'maxresdefault.jpg',
+            'sddefault.jpg',
             'hqdefault.jpg',
-            'high.jpg',
             '0.jpg',
+            'high.jpg',
             'mqdefault.jpg',
             'medium.jpg',
-            'sddefault.jpg',
             'default.jpg',
             '1.jpg',
             '2.jpg',
