@@ -23,8 +23,12 @@ class WaybackMachine(YouTubeService):
         response2 = None
         if not archived:
             lien = None
-            check = urllib.parse.quote(f"https://youtube.com/watch?v={id}", safe="") # not exhaustive but...
-            async with session.get(f"https://archive.org/wayback/available?url={check}&timestamp=0", timeout=8) as resp:
+            check = f"https://youtube.com/watch?v={id}" # not exhaustive but...
+            params = {
+                "url": check,
+                "timestamp": 0
+            }
+            async with session.get(f"https://archive.org/wayback/available", params=params, timeout=8) as resp:
                 response2 = await resp.json()
                 if response2["archived_snapshots"]:
                     archived = True
