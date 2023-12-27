@@ -49,7 +49,7 @@ function finish(vid1) {
 
     // https://www.behance.net/gallery/31234507/Open-source-Loading-GIF-Icons-Vol-1
     dataDiv.innerHTML += `<div style="display: flex; gap: 12px;"><img src="/static/loading.gif" width="25" height="25" /> Loading could take up to 30 seconds.</div>`;
-    fetch(`api/v3/youtube/${vid}`)
+    fetch(`api/v4/youtube/${vid}`)
         .then((response) => {
             if (response.status === 410 || response.status === 404) {
                 dataDiv.innerHTML = `<span style="color: red;">API version is not supported - this should never happen</span>`;
