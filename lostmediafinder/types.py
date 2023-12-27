@@ -151,9 +151,9 @@ class YouTubeResponse(JSONDataclass):
 
     # There were no changes to the data structure between v3 and v4
     def _convert_v4_to_v3(selfNEW): # pylint: disable=no-self-argument
+        self = copy.deepcopy(selfNEW)
         assert self.api_version == 4
         self.api_version = 3
-        return copy.deepcopy(selfNEW)
 
     def _convert_v3_to_v2(selfNEW): # pylint: disable=no-self-argument
         self = copy.deepcopy(selfNEW)
