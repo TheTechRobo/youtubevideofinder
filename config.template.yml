@@ -1,6 +1,10 @@
 version: 3
 
 methods:
+  youtube:
+    title: YouTube
+    enabled: true
+
   ia_wayback:
     title: Wayback Machine
     enabled: true
@@ -24,9 +28,9 @@ methods:
     password:
 
   distributed_youtube_archive:
-    title: "Distributed YouTube Archive"
+    title: Distributed YouTube Archive
     enabled: false
-    key: ""
+    key:
 
   hobune_stream:
     title: Hobune.stream

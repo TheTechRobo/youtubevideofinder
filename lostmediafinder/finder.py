@@ -6,6 +6,37 @@ import random, time, urllib.parse, aiohttp, asyncio
 from switch import Switch
 from .types import YouTubeService, T, methods
 
+class YouTube(YouTubeService):
+    """
+    Checks if the video is still available on YouTube.
+    Thumbnail method has a few edge cases but seems the most reliable for all tested cases.
+    """
+    name = methods["youtube"]["title"]
+    configId = "youtube"
+
+    @classmethod
+    async def _run(cls, id, session: aiohttp.ClientSession, includeRaw=True) -> T:
+        lien = f"https://i.ytimg.com/vi/{id}/hqdefault.jpg"
+        async with session.head(lien, allow_redirects=False, timeout=15) as response:
+            code = response.status
+
+        rawraw = code if includeRaw else None
+        archived = None
+        link = f"https://youtu.be/{id}"
+
+        if code == 200:
+            archived = True
+        else:
+            archived = False
+
+        capcount = int(archived)
+        available = link if archived else None
+        lastupdated = time.time()
+        return cls(
+            archived=archived, available=available, capcount=capcount, lastupdated=lastupdated, name=cls.getName(), note="", rawraw=rawraw,
+            metaonly=False, comments=False
+        )
+
 class WaybackMachine(YouTubeService):
     """
     Queries the Wayback Machine for the video you requested.
