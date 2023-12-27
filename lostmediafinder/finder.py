@@ -2,30 +2,29 @@
 All the Service implementations live here.
 """
 
-import random, time, urllib.parse, aiohttp, asyncio, requests, json, innertube
+import random, time, urllib.parse, aiohttp, asyncio, requests, json
 from switch import Switch
 from .types import YouTubeService, T, methods
 
-youtubei = innertube.InnerTube("WEB")
-
-class YouTubeI(YouTubeService):
+class YouTube(YouTubeService):
     """
-    Queries innertube to see if the video is still available on YouTube.
+    Checks if the video is still available on YouTube.
+    Thumbnail method has a few edge cases but seems the most reliable for all tested cases.
     """
-    name = methods["youtubei"]["title"]
-    configId = "youtubei"
+    name = methods["youtube"]["title"]
+    configId = "youtube"
 
     @classmethod
     async def _run(cls, id, session: aiohttp.ClientSession, includeRaw=True) -> T:
-        data = youtubei.player(id)
-        code = 200
+        lien = f"https://i.ytimg.com/vi/{id}/hqdefault.jpg"
+        async with session.head(lien, allow_redirects=False, timeout=15) as response:
+            code = response.status
 
         rawraw = code if includeRaw else None
         archived = None
         link = f"https://youtu.be/{id}"
 
-        if "playabilityStatus" in data and data["playabilityStatus"]["status"] == "OK":
-            print(data["playabilityStatus"]["status"])
+        if code == 200:
             archived = True
         else:
             archived = False
