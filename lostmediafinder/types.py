@@ -154,6 +154,7 @@ class YouTubeResponse(JSONDataclass):
         self = copy.deepcopy(selfNEW)
         assert self.api_version == 4
         self.api_version = 3
+        return self
 
     def _convert_v3_to_v2(selfNEW): # pylint: disable=no-self-argument
         self = copy.deepcopy(selfNEW)
