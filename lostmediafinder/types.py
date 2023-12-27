@@ -38,10 +38,6 @@ class Service(JSONDataclass):
         rawraw (Any): The data used to check whether the video is archived on that particular service. For example, for GhostArchive, it would be the HTTP status code.
         metaonly (bool): True if only the metadata is archived. This value should not be relied on!
         comments (bool): True if the comments are archived. This value should not be relied on!
-
-        =Changelog=
-        API VERSION 2 -> 3:
-            - The `error` attribute is now no longer a boolean; it contains an error message if an error occured and null if no error occured
     """
     archived: bool
     capcount: int
@@ -127,11 +123,6 @@ class YouTubeResponse(JSONDataclass):
         keys (list[YouTubeService]): An array with all the server responses. THIS IS DIFFERENT THAN BEFORE! Before, this would be an array of strings. You'd use the strings as keys. Now, this array has the data directly!
         api_version (int): The API version. Breaking API changes are made by incrementing this.
         verdict (dict): The verdict of the response. Has video, metaonly, and comments field, that are set to true if any archive was found where that was saved. Also has human_friendly field that has a simple verdict that can be used by people.
-
-    =Changelog=
-    API VERSION 3 -> 4:
-         The `rawraw` field is now only provided if you provide the `includeRaw` parameter and set it to True.
-         Example in a URL: <code>/api/v4/dQw4w9WgXcQ?includeRaw=true</code>
     """
     id: str
     status: str
