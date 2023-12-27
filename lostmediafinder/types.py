@@ -59,7 +59,7 @@ class Service(JSONDataclass):
     configId = None
 
     @classmethod
-    async def _run(cls, id, session: aiohttp.ClientSession, includeRaw=True) -> T:
+    async def _run(cls, id, session: aiohttp.ClientSession) -> T:
         raise NotImplementedError("Subclass Service and impl the _run function")
 
     @classmethod
@@ -79,7 +79,10 @@ class Service(JSONDataclass):
             includeRaw (bool): Whether or not to include the raw data as sent from the service. If you don't need this data, turn this off; it's only the default for compatibility.
         """
         try:
-            return await cls._run(id, session, includeRaw=includeRaw, **kwargs)
+            res = await cls._run(id, session, **kwargs)
+            if not includeRaw:
+                res.rawraw = None
+            return res
         except Exception as ename: # pylint: disable=broad-except
             note = f"An error occured while retrieving data from {cls.getName()}."
             print(ename)
@@ -124,12 +127,17 @@ class YouTubeResponse(JSONDataclass):
         keys (list[YouTubeService]): An array with all the server responses. THIS IS DIFFERENT THAN BEFORE! Before, this would be an array of strings. You'd use the strings as keys. Now, this array has the data directly!
         api_version (int): The API version. Breaking API changes are made by incrementing this.
         verdict (dict): The verdict of the response. Has video, metaonly, and comments field, that are set to true if any archive was found where that was saved. Also has human_friendly field that has a simple verdict that can be used by people.
+
+    =Changelog=
+    API VERSION 3 -> 4:
+         The `rawraw` field is now only provided if you provide the `includeRaw` parameter and set it to True.
+         Example in a URL: <code>/api/v4/dQw4w9WgXcQ?includeRaw=true</code>
     """
     id: str
     status: str
     keys: list[YouTubeService]
     verdict: dict
-    api_version: int = 3
+    api_version: int = 4
 
     def coerce_to_api_version(selfNEW, target): # pylint: disable=no-self-argument
         """
@@ -149,6 +157,12 @@ class YouTubeResponse(JSONDataclass):
             self = getattr(self, fname)()
         assert self.api_version == target
         return self
+
+    # There were no changes to the data structure between v3 and v4
+    def _convert_v4_to_v3(selfNEW): # pylint: disable=no-self-argument
+        assert self.api_version == 4
+        self.api_version = 3
+        return copy.deepcopy(selfNEW)
 
     def _convert_v3_to_v2(selfNEW): # pylint: disable=no-self-argument
         self = copy.deepcopy(selfNEW)
@@ -194,11 +208,12 @@ class YouTubeResponse(JSONDataclass):
         return verdict
 
     @classmethod
-    async def generate(cls, id):
+    async def generate(cls, id: str, includeRaw=False):
         """
         Runs all the Services.
         Arguments:
-            id: The video ID
+            id (str): The video ID
+            includeRaw (bool): Whether or not to include the raw data in the `rawraw` field. If you don't need it, disable this.
         """
         if not cls.verifyId(id):
             return cls(status="bad.id", id=id, keys=[], verdict={"video":False,"comments":False,"metaonly":False,"human_friendly":"Invalid video ID. "})
@@ -207,7 +222,7 @@ class YouTubeResponse(JSONDataclass):
         coroutines = []
         async with aiohttp.ClientSession() as session:
             for service in services:
-                coroutines.append(service.run(id, session))
+                coroutines.append(service.run(id, session, includeRaw=includeRaw))
             results = await asyncio.gather(*coroutines)
         for result in results:
             keys.append(result)

@@ -29,32 +29,24 @@
 </div>
 <div class="container">
     <div class="banner">
-        Please don't spam my servers. Anyone that spams too much may be banned. Contact me on Discord
-        (username: thetechrobo) or IRC (TheTechRobo on hackint, libera.chat, and OFTC) to discuss.
+        Please don't spam my servers. Anyone who makes too many requests may be banned. Contact me on Discord
+        (username: thetechrobo), IRC (TheTechRobo on hackint, libera.chat, and OFTC), or email (thetechrobo@proton.me) to discuss.
     </div>
     <br>
     <h4>API Documentation</h4>
     <h6>Call: GET <code>/api/:version/:videoid</code></h6>
-    <p>Current versions available: v2, v3</p>
+	<h6>Accepted parameters: <code>includeRaw</code> (set to include the <code>rawraw</code> field)</h6>
+    <p>Current versions available: v2, v3, v4. Documentation below only applies to the latest version.</p>
+	<u>Changelog</u>
+	<div id="changelog">
+		<ul>
+			<li>API version v3 -&gt; 4:</li>
+			<ul id="root_3to4">
+				<li>The <code>rawraw</code> field is now only provided if you set the <code>includeRaw</code> parameter.</li>
+			</ul>
+		</ul>
+	</div>
     <b>Fields</b>
-    {% if changelog[0] %}
-        <div id="Fcl">
-            <u>Changelog</u>
-            <ul>
-                {% for log, logitems in changelog[0].items() %}
-                    {% if log %}
-                        <li>Api version {{ log }}</li>
-                        <ul>
-                            {% for logitem in logitems %}
-                                <li>{{ logitem }}</li>
-                            {% endfor %}
-                        </ul>
-                    {% endif %}
-                {% endfor %}
-            </ul>
-        </div>
-    {% endif %}
-    <br>
     <dl>
         {% if fields is mapping %}
             {% for field, value in fields.items() %}
@@ -67,24 +59,19 @@
             Fail
         {% endif %}
     </dl>
+	<u>NOTE:</u> The <code>rawraw</code> field is only set if you set the <code>includeRaw</code> parameter. Example: <code>/api/v4/dQw4w9WgXcQ?includeRaw=true</code>. Please only enable this if you have to, as it will slow down loading.
+</div>
+<div class="container">
     <b>Service Objects</b>
-    {% if changelog[1] %}
-        <div id="Scl">
-            <u>Changelog</u>
-            <ul>
-                {% for log, logitems in changelog[1].items() %}
-                    {% if log %}
-                        <li>Api version {{ log }}</li>
-                        <ul>
-                            {% for logitem in logitems %}
-                                <li>{{ logitem }}</li>
-                            {% endfor %}
-                        </ul>
-                    {% endif %}
-                {% endfor %}
-            </ul>
-        </div>
-    {% endif %}
+	<div id="changelog2">
+		<u>Changelog</u>
+		<ul>
+			<li>API version 2 -&gt; 3:</li>
+			<ul id="service_2to3">
+				<li>The <code>error</code> field is no longer a boolean; it now contains an error message if an error occured and null otherwise</li>
+			</ul>
+		</ul>
+	</div>
     {% if services is mapping %}
         <dl>
             {% for field, value in services.items() %}

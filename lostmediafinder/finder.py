@@ -15,12 +15,12 @@ class YouTube(YouTubeService):
     configId = "youtube"
 
     @classmethod
-    async def _run(cls, id, session: aiohttp.ClientSession, includeRaw=True) -> T:
+    async def _run(cls, id, session: aiohttp.ClientSession) -> T:
         lien = f"https://i.ytimg.com/vi/{id}/hqdefault.jpg"
         async with session.head(lien, allow_redirects=False, timeout=15) as response:
             code = response.status
 
-        rawraw = code if includeRaw else None
+        rawraw = code
         archived = None
         link = f"https://youtu.be/{id}"
 
@@ -45,7 +45,7 @@ class WaybackMachine(YouTubeService):
     configId = "ia_wayback"
 
     @classmethod
-    async def _run(cls, id, session: aiohttp.ClientSession, includeRaw=True) -> T:
+    async def _run(cls, id, session: aiohttp.ClientSession) -> T:
         ismeta = False
         lien = f"https://web.archive.org/web/2oe_/http://wayback-fakeurl.archive.org/yt/{id}"
         async with session.head(lien, allow_redirects=False, timeout=15) as response:
@@ -66,7 +66,7 @@ class WaybackMachine(YouTubeService):
                     ismeta = True
                     lien = response2["archived_snapshots"]["closest"]["url"]
 
-        rawraw = (redirect, response2) if includeRaw else None
+        rawraw = (redirect, response2)
         return cls(
                 archived=archived, capcount=int(archived), rawraw=rawraw,
                 available=lien, lastupdated=time.time(), name=cls.getName(),
@@ -86,7 +86,7 @@ class ArchiveOrgDetails(YouTubeService):
     ]
 
     @classmethod
-    async def _run(cls, id, session: aiohttp.ClientSession, includeRaw=True) -> T:
+    async def _run(cls, id, session: aiohttp.ClientSession) -> T:
         responses = []
         is_dark = False
         for template in cls.items_tried:
@@ -100,7 +100,7 @@ class ArchiveOrgDetails(YouTubeService):
                 is_dark = False
                 break
         archived = bool(metadata)
-        rawraw = responses if includeRaw else None
+        rawraw = responses
         lien = f"https://archive.org/details/{ident}" if archived else None
         note = ""
         if not archived:
@@ -132,7 +132,7 @@ class ArchiveOrgCDX(YouTubeService):
     configId = "ia_cdx"
 
     @classmethod
-    async def _run(cls, id, session: aiohttp.ClientSession, includeRaw=True) -> T:
+    async def _run(cls, id, session: aiohttp.ClientSession) -> T:
         cdx_urls = [
             f"https://web.archive.org/cdx/search/cdx?url=i.ytimg.com/vi/{id}*&collapse=digest&filter=statuscode:200&mimetype:image/jpeg&output=json",
             f"https://web.archive.org/cdx/search/cdx?url=i1.ytimg.com/vi/{id}*&collapse=digest&filter=statuscode:200&mimetype:image/jpeg&output=json",
@@ -200,11 +200,11 @@ class GhostArchive(YouTubeService):
     configId = "ghostarchive"
 
     @classmethod
-    async def _run(cls, id, session: aiohttp.ClientSession, includeRaw=True) -> T:
+    async def _run(cls, id, session: aiohttp.ClientSession) -> T:
         link = f"https://ghostarchive.org/varchive/{id}"
         async with session.get(link) as resp:
             code = resp.status
-        rawraw = code if includeRaw else None
+        rawraw = code
         archived = None
         with Switch(code) as case:
             if case(200):
@@ -236,7 +236,7 @@ class HackintYa(YouTubeService):
     configId = "hackint_ya"
 
     @classmethod
-    async def _run(cls, id, session: aiohttp.ClientSession, includeRaw=True):
+    async def _run(cls, id, session: aiohttp.ClientSession):
         username = methods[cls.configId]["username"]
         password = methods[cls.configId]["password"]
 
@@ -252,7 +252,7 @@ class HackintYa(YouTubeService):
             commentcount = await resp.text()
         archived = (count > 0)
         comments = [i for i in commentcount.split("\n") if i.strip("∅\n") and i.strip() != "0"]
-        rawraw = (count, commentcount) if includeRaw else None
+        rawraw = (count, commentcount)
         return cls(
             archived=archived, capcount=count, comments=(len(comments) > 0), lastupdated=time.time(), name=cls.getName(),
             note=cls.note if archived else "", rawraw=rawraw, metaonly=False
@@ -268,7 +268,7 @@ class DistributedYoutubeArchive(YouTubeService):
     configId = "distributed_youtube_archive"
 
     @classmethod
-    async def _run(cls, id, session: aiohttp.ClientSession, includeRaw=True):
+    async def _run(cls, id, session: aiohttp.ClientSession):
         token = methods[cls.configId]['key']
         user_agent = FYT_UA
         lastupdated = time.time()
@@ -310,7 +310,7 @@ class Hobune(YouTubeService):
     cooldown = 0.5
 
     @classmethod
-    async def _run(cls, id, session: aiohttp.ClientSession, includeRaw=True):
+    async def _run(cls, id, session: aiohttp.ClientSession):
         while time.time() - cls.lastretrieved < cls.cooldown:
             await asyncio.sleep(0.1)
         user_agent = "FindYoutubeVideo/1.0 operated by thetechrobo@proton.me"
@@ -352,7 +352,7 @@ class Filmot(YouTubeService):
     configId = "filmot"
 
     @classmethod
-    async def _run(cls, id, session: aiohttp.ClientSession, includeRaw=True) -> T:
+    async def _run(cls, id, session: aiohttp.ClientSession) -> T:
         key = methods[cls.configId]["api_key"]
 
         while time.time() - cls.lastretrieved < cls.cooldown:
@@ -361,7 +361,7 @@ class Filmot(YouTubeService):
         cls.lastretrieved = time.time()
         async with session.get(f"https://filmot.com/api/getvideos?key={key}&id={id}&flags=1") as resp:
             metadata = await resp.json(content_type=None)
-        rawraw = metadata if includeRaw else None
+        rawraw = metadata
         if len(metadata) > 0: # pylint: disable=simplifiable-if-statement
             archived = True
         else:
@@ -385,7 +385,7 @@ class Playboard(YouTubeService):
     configId = "playboard_co"
 
     @classmethod
-    async def _run(cls, id, session: aiohttp.ClientSession, includeRaw=True):
+    async def _run(cls, id, session: aiohttp.ClientSession):
         user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.%s.0.0 Safari/537.36"
         user_agent = user_agent % random.randint(0, 100)
         url = f"https://playboard.co/en/video/{id}"

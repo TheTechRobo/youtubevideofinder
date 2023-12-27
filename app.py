@@ -10,7 +10,7 @@ with open('config.yml', 'r') as file:
 @app.route("/robots.txt")
 async def robots():
     return """
-# I'm 100% fine with crawlers, just don't fuck up my servers.
+# Please be courteous and have at least a second or two of delay between requests.
 User-Agent: *
 Crawl-delay: 2
 Disallow:
@@ -23,11 +23,11 @@ async def youtubev2(id):
     """
     return (await lostmediafinder.YouTubeResponse.generate(id)).coerce_to_api_version(2).json()
 
-async def wrapperYT(id):
+async def wrapperYT(id, includeRaw):
     """
     Wrapper for generateAsync
     """
-    return await lostmediafinder.YouTubeResponse.generate(id)
+    return await lostmediafinder.YouTubeResponse.generate(id, includeRaw)
 
 @app.route("/api/v<int:v>/<site>/<id>")
 @app.route("/api/v<int:v>/<id>")
@@ -35,12 +35,17 @@ async def youtube(v, id, site="youtube", json=True):
     """
     Wrapper around lostmediafinder
     """
+    includeRaw = True
     if v == 1:
         return "This API version is no longer supported.", 410
-    if v not in (2, 3):
+    if v not in (2, 3, 4):
         return "Unrecognised API version", 404
     if site == "youtube":
-        r = (await wrapperYT(id)).coerce_to_api_version(v)
+        includeRaw = True
+        if v >= 4:
+            # Versions 4 and higher only provide `rawraw` if you ask for it
+            includeRaw = "includeRaw" in request.args
+        r = (await wrapperYT(id, includeRaw=includeRaw)).coerce_to_api_version(v)
         if json:
             return r.json()
         return r
