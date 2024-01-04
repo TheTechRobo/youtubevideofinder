@@ -269,10 +269,9 @@ class DistributedYoutubeArchive(YouTubeService):
 
     @classmethod
     async def _run(cls, id, session: aiohttp.ClientSession):
-        token = methods[cls.configId]['key']
         user_agent = FYT_UA
         lastupdated = time.time()
-        async with session.get(f"https://dya-t-api.strangled.net/api/video/{id}", headers={"Authorization": token}) as resp:
+        async with session.get(f"https://dya-t-api.strangled.net/api/video/{id}") as resp:
             status = resp.status
             if status not in (200, 404):
                 raise RuntimeError(f"DYA returned bad status code {status}")
