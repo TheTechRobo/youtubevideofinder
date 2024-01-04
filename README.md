@@ -24,7 +24,7 @@ docker run --restart=unless-stopped -p 8000:8000 -e GUNICORN_WORKERS=4 thetechro
 
 ## Licence
 
-Copyright (c) 2022-2023 TheTechRobo
+Copyright (c) 2022-2024 TheTechRobo
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
