@@ -230,9 +230,7 @@ class HackintYa(YouTubeService):
     Queries #youtubearchive for the video you requested.
     """
     name = methods["hackint_ya"]["title"]
-    note = ("To retrieve a video from #youtubearchive, join #youtubearchive on hackint IRC and ask for help. "
-        "Remember <a href='https://wiki.archiveteam.org/index.php/Archiveteam:IRC#How_do_I_chat_on_IRC?'>IRC etiquette</a>!"
-    )
+    note = ("At the request of #youtubearchive's maintainer, instructions to request videos have been removed. If you are significantly involved in archiving or open source, you have a legitimate research or humanitarian purpose, or are able to contribute materially, contact me at thetechrobo@proton.me.")
     configId = "hackint_ya"
 
     @classmethod
