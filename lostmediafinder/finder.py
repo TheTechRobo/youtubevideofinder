@@ -351,14 +351,12 @@ class removededm(YouTubeService):
         async with session.head(lien, allow_redirects=False, timeout=15) as response:
             redirect = response.headers.get("location")
             archived = bool(redirect) # if there's a redirect, it's archived
-        response2 = None
         if not archived:
-            lien = None
-            check = f"https://removededm.com/wiki/{id}"
-                if code == 200:
-                    redirect = response.headers.get("location")
-                    archived = bool(redirect) # if there's a redirect, it's archived
-                    ismeta = True
+            lien = f"https://removededm.com/wiki/{id}"
+                async with session.head(lien, allow_redirects=False, timeout=15) as response:
+                redirect = response.headers.get("location")
+                archived = bool(redirect) # if there's a redirect, it's archived
+                ismeta = True
 
         rawraw = (redirect)
         return cls(
