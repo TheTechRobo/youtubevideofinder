@@ -355,17 +355,12 @@ class removededm(YouTubeService):
         if not archived:
             lien = None
             check = f"https://removededm.com/wiki/{id}"
-            params = {
-                "url": check,
-                "timestamp": 0
-            }
-            async with session.get(f"https://removededm.com/wiki/{id}", timeout=8) as resp:
-                response2 = await resp.json()
                 if code == 200:
-                    archived = True
+                    redirect = response.headers.get("location")
+                    archived = bool(redirect) # if there's a redirect, it's archived
                     ismeta = True
 
-        rawraw = (redirect, response2)
+        rawraw = (redirect)
         return cls(
                 archived=archived, rawraw=rawraw, available=lien, metaonly=ismeta, comments=False
         )
