@@ -337,6 +337,39 @@ class Hobune(YouTubeService):
             rawraw=raw, metaonly=False, comments=False, available=available
         )
 
+class removededm(YouTubeService):
+    """
+    Queries the removed.edm database for the video you requested.
+    """
+    name = methods["removededm"]["title"]
+    configId = "removededm"
+
+    @classmethod
+    async def _run(cls, id, session: aiohttp.ClientSession) -> T:
+        ismeta = False
+        lien = f"https://removededm.com/wiki/File:{id}.mp4" or f"https://removededm.com/wiki/File:{id}.webm"
+        async with session.head(lien, allow_redirects=False, timeout=15) as response:
+            redirect = response.headers.get("location")
+            archived = bool(redirect) # if there's a redirect, it's archived
+        response2 = None
+        if not archived:
+            lien = None
+            check = f"https://removededm.com/wiki/{id}"
+            params = {
+                "url": check,
+                "timestamp": 0
+            }
+            async with session.get(f"https://removededm.com/wiki/{id}", timeout=8) as resp:
+                response2 = await resp.json()
+                if code == 200:
+                    archived = True
+                    ismeta = True
+
+        rawraw = (redirect, response2)
+        return cls(
+                archived=archived, rawraw=rawraw, available=lien, metaonly=ismeta, comments=False
+        )
+
 # TODO: Make a YouTubeServiceWithCooldown or something
 
 class Filmot(YouTubeService):
