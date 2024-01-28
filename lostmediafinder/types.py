@@ -19,7 +19,6 @@ with open('config.yml', 'r') as file:
     config_yml = yaml.safe_load(file)
     methods = config_yml["methods"]
 
-T = typing.TypeVar("T", bound="YouTubeService") # pylint: disable=invalid-name
 # (this name is fine)
 
 @dataclasses.dataclass
@@ -50,12 +49,12 @@ class Service(JSONDataclass):
 
     available: typing.Optional[str] = None
     suppl: str = ""
-    error: bool = None
+    error: typing.Optional[bool] = None
 
     configId = None
 
     @classmethod
-    async def _run(cls, id, session: aiohttp.ClientSession) -> T:
+    async def _run(cls, id, session: aiohttp.ClientSession) -> typing.Self:
         raise NotImplementedError("Subclass Service and impl the _run function")
 
     @classmethod

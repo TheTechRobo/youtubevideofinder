@@ -2,9 +2,9 @@
 All the Service implementations live here.
 """
 
-import random, time, urllib.parse, aiohttp, asyncio
+import random, time, urllib.parse, aiohttp, asyncio, typing
 from switch import Switch
-from .types import YouTubeService, T, methods
+from .types import YouTubeService, methods
 
 class YouTube(YouTubeService):
     """
@@ -15,7 +15,7 @@ class YouTube(YouTubeService):
     configId = "youtube"
 
     @classmethod
-    async def _run(cls, id, session: aiohttp.ClientSession) -> T:
+    async def _run(cls, id, session: aiohttp.ClientSession) -> typing.Self:
         lien = f"https://i.ytimg.com/vi/{id}/hqdefault.jpg"
         async with session.head(lien, allow_redirects=False, timeout=15) as response:
             code = response.status
@@ -45,7 +45,7 @@ class WaybackMachine(YouTubeService):
     configId = "ia_wayback"
 
     @classmethod
-    async def _run(cls, id, session: aiohttp.ClientSession) -> T:
+    async def _run(cls, id, session: aiohttp.ClientSession) -> typing.Self:
         ismeta = False
         lien = f"https://web.archive.org/web/2oe_/http://wayback-fakeurl.archive.org/yt/{id}"
         async with session.head(lien, allow_redirects=False, timeout=15) as response:
@@ -86,7 +86,7 @@ class ArchiveOrgDetails(YouTubeService):
     ]
 
     @classmethod
-    async def _run(cls, id, session: aiohttp.ClientSession) -> T:
+    async def _run(cls, id, session: aiohttp.ClientSession) -> typing.Self:
         responses = []
         is_dark = False
         for template in cls.items_tried:
@@ -132,7 +132,7 @@ class ArchiveOrgCDX(YouTubeService):
     configId = "ia_cdx"
 
     @classmethod
-    async def _run(cls, id, session: aiohttp.ClientSession) -> T:
+    async def _run(cls, id, session: aiohttp.ClientSession) -> typing.Self:
         cdx_urls = [
             f"https://web.archive.org/cdx/search/cdx?url=i.ytimg.com/vi/{id}*&collapse=digest&filter=statuscode:200&mimetype:image/jpeg&output=json",
             f"https://web.archive.org/cdx/search/cdx?url=i1.ytimg.com/vi/{id}*&collapse=digest&filter=statuscode:200&mimetype:image/jpeg&output=json",
@@ -200,7 +200,7 @@ class GhostArchive(YouTubeService):
     configId = "ghostarchive"
 
     @classmethod
-    async def _run(cls, id, session: aiohttp.ClientSession) -> T:
+    async def _run(cls, id, session: aiohttp.ClientSession) -> typing.Self:
         link = f"https://ghostarchive.org/varchive/{id}"
         async with session.get(link) as resp:
             code = resp.status
@@ -345,22 +345,37 @@ class removededm(YouTubeService):
     configId = "removededm"
 
     @classmethod
-    async def _run(cls, id, session: aiohttp.ClientSession) -> T:
+    async def _run(cls, id, session: aiohttp.ClientSession) -> typing.Self:
         ismeta = False
-        lien = f"https://removededm.com/wiki/File:{id}.mp4" or f"https://removededm.com/wiki/File:{id}.webm"
-        async with session.head(lien, allow_redirects=False, timeout=15) as response:
-            redirect = response.headers.get("location")
-            archived = bool(redirect) or code == 200 # if there's a redirect, it's archived
-        if not archived:
-            lien = f"https://removededm.com/wiki/{id}"
-                async with session.head(lien, allow_redirects=False, timeout=15) as response:
+        # Note: Video IDs starting with an underscore are redirected to have a period at the start due to
+        #       limitations in the wiki software
+        potential_links = (f"https://removededm.com/wiki/File:{id}.mp4", f"https://removededm.com/wiki/File:{id}.webm")
+        archived = False # not technically necessary but makes linters happy
+        rawraw = None
+        lien = None
+        for lnk in potential_links:
+            async with session.head(lnk, allow_redirects=False, timeout=15) as response:
                 redirect = response.headers.get("location")
-                archived = bool(redirect) or code == 200 # if there's a redirect, it's archived
-                ismeta = True
+                archived = bool(redirect) or response.status == 200 # if there's a redirect, it's archived
+                rawraw = (redirect, response.status)
+                if archived:
+                    # No more searching needed, it's archived
+                    lien = lnk
+                    break
+        if not archived:
+            link = f"https://removededm.com/wiki/{id}"
+            async with session.head(link, allow_redirects=False, timeout=15) as response:
+                redirect = response.headers.get("location")
+                archived = bool(redirect) or response.status == 200
+                if archived:
+                    lien = link
+                    ismeta = True
+                rawraw = (redirect, response.status)
 
-        rawraw = (redirect)
         return cls(
-                archived=archived, rawraw=rawraw, available=lien, metaonly=ismeta, comments=False
+            archived=archived, rawraw=rawraw, available=lien, metaonly=ismeta, comments=False,
+            capcount=(1 if archived else 0), error=None, lastupdated=time.time(),
+            name=cls.getName(), note=""
         )
 
 # TODO: Make a YouTubeServiceWithCooldown or something
@@ -375,7 +390,7 @@ class Filmot(YouTubeService):
     configId = "filmot"
 
     @classmethod
-    async def _run(cls, id, session: aiohttp.ClientSession) -> T:
+    async def _run(cls, id, session: aiohttp.ClientSession) -> typing.Self:
         key = methods[cls.configId]["api_key"]
 
         while time.time() - cls.lastretrieved < cls.cooldown:
@@ -408,7 +423,7 @@ class Playboard(YouTubeService):
     configId = "playboard_co"
 
     @classmethod
-    async def _run(cls, id, session: aiohttp.ClientSession):
+    async def _run(cls, id, session: aiohttp.ClientSession) -> typing.Self:
         user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.%s.0.0 Safari/537.36"
         user_agent = user_agent % random.randint(0, 100)
         url = f"https://playboard.co/en/video/{id}"
