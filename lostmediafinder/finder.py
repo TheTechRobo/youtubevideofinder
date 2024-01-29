@@ -202,7 +202,7 @@ class GhostArchive(YouTubeService):
     @classmethod
     async def _run(cls, id, session: aiohttp.ClientSession) -> typing.Self:
         link = f"https://ghostarchive.org/varchive/{id}"
-        async with session.get(link) as resp:
+        async with session.get(link, timeout=5) as resp:
             code = resp.status
         rawraw = code
         archived = None
