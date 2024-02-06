@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <link href="/static/normalize.css" rel="stylesheet" type="text/css" />
+    <link href="/static/skeleton.css" rel="stylesheet" type="text/css" />
+    <link href="/static/styles.css" rel="stylesheet" />
+
+    <style>
+      .content {
+        text-align: center;
+        align-items: center;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container content">
+      <p style="color:red">
+        Could not parse your input as a video ID or URL.<br />
+        Your input was:<br />
+        <code>{{inp}}</code>
+      </p>
+      <br />
+      If the video ID or URL is valid, please file an issue on GitHub! In the meantime, try copying the video ID from the URL yourself.
+    </div>
+  </body>
+</html>

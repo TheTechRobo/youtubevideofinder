@@ -1,5 +1,5 @@
-from flask import Flask, render_template, request, Response, redirect
-import re, urllib.parse, yaml
+from flask import Flask, render_template, request, Response, redirect, send_from_directory
+import re, urllib.parse, yaml, json
 import lostmediafinder
 
 app = Flask(__name__)
@@ -9,12 +9,7 @@ with open('config.yml', 'r') as file:
 
 @app.route("/robots.txt")
 async def robots():
-    return """
-# Please be courteous and have at least a second or two of delay between requests.
-User-Agent: *
-Crawl-delay: 2
-Disallow:
-    """.strip()
+    return send_from_directory("static", "robots.txt")
 
 @app.route("/find/<id>")
 async def youtubev2(id):
@@ -55,14 +50,7 @@ async def youtube(v, id, site="youtube", json=True):
 async def noscript_init():
     if id := request.args.get("d"):
         return redirect("/noscript_load.html?d=" + id)
-    return """
-    <!DOCTYPE html>
-    <html>
-      <body style="text-align:center;align-items:center">
-        <p>Awaiting input...</p>
-      </body>
-    </html>
-    """
+    return render_template("noscript/init.j2")
 
 ID_PATTERN = re.compile(r'^[A-Za-z0-9_-]{10}[AEIMQUYcgkosw048]$')
 PATTERNS = [
@@ -73,6 +61,8 @@ PATTERNS = [
 ]
 
 def coerce_to_id(vid):
+    if not vid:
+        return None
     if re.match(ID_PATTERN, vid):
         return vid
 
@@ -96,22 +86,9 @@ async def noscript_load():
         return "No d param provided - It should be the video id or url", 400
     id = coerce_to_id(request.args['d'])
     if not id:
-        return """
-        <!DOCTYPE html>
-        <html><body style="text-align:center;align-items:center;">
-          <p style="color:red">Could not parse your input as a video ID or URL.<br />Your input was:<br /><code>%s</code></p>
-          <br />IF the video ID or URL is valid, please file an issue on github!
-        </body></html>
-        """ % request.args['d'], 400
-    response = Response("""
-    <!DOCTYPE html>
-    <html>
-    <head><meta http-equiv="refresh" content="0; url=/noscript_load_thing.html?id=%s" /></head>
-    <body>
-    <img src="/static/loading.gif" width="25" height="25" />Loading could take up to 45 seconds.</img>
-    </body>
-    </html>
-    """ % id, headers=(("FinUrl", f"/noscript_load_thing.html?id={id}"),))
+        return render_template("templates/error.j2", inp=request.args['d']), 400
+    headers = (("FinUrl", f"/noscript_load_thing.j2?id={id}"),)
+    response = Response(render_template("noscript/loading", id=id), headers=headers)
     return response, 302
 
 @app.route("/api/coerce_to_id")
@@ -128,9 +105,7 @@ async def load_thing():
     if not request.args.get("id"):
         return "Missing id parameter", 400
     t = await youtube(3, request.args['id'], "youtube", json=False)
-    return render_template("fid.html", resp=t)
-
-import json
+    return render_template("noscript/fid.j2", resp=t)
 
 @app.after_request
 async def apply_json_contenttype(response):
@@ -138,7 +113,7 @@ async def apply_json_contenttype(response):
         return response
     try:
         json.loads(response.get_data(True))
-    except Exception as ename:
+    except json.JSONDecodeError:
         # Not JSON
         return response
     response.content_type = "application/json"
@@ -151,8 +126,9 @@ async def index():
     """
     default = request.args.get("q") or ""
     default_id = coerce_to_id(default) or ""
-    return render_template("index.html", default=default, default_id=default_id, methods=get_enabled_methods())
+    return render_template("index.j2", default=default, default_id=default_id, methods=get_enabled_methods())
 
+# The following code should be taken out and shot
 def parse_changelog(changelog):
     """
     Parses a changelog out of a lostmediafinder docstring
@@ -211,4 +187,4 @@ async def api():
     # Parse the attributes list
     responseDocstring = await parse_lines(rChangelog[0].split("Attributes:\n")[1].strip().split("\n"))
     serviceDocstring  = await parse_lines(sChangelog[0].split("Attributes:\n")[1].strip().split("\n"))
-    return render_template("api.html", fields=responseDocstring, services=serviceDocstring, changelog=changelog)
+    return render_template("api.j2", fields=responseDocstring, services=serviceDocstring, changelog=changelog)

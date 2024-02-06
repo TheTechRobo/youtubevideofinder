@@ -1,0 +1,4 @@
+# Please be courteous and have at least a second or two of delay between requests.
+User-Agent: *
+Crawl-delay: 2
+Disallow:
