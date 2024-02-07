@@ -2,7 +2,6 @@ snscrape==0.4.3.20220106
 aiohttp[speedups]
 requests
 switch
-nest_asyncio
 cachetools
 click
 asyncache
