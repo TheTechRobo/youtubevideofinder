@@ -88,7 +88,7 @@ async def noscript_load():
     if not id:
         return render_template("templates/error.j2", inp=request.args['d']), 400
     headers = (("FinUrl", f"/noscript_load_thing.j2?id={id}"),)
-    response = Response(render_template("noscript/loading", id=id), headers=headers)
+    response = Response(render_template("noscript/loading.j2", id=id), headers=headers)
     return response, 302
 
 @app.route("/api/coerce_to_id")

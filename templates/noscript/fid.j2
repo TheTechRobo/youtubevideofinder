@@ -20,7 +20,7 @@ span > a:visited {
 </style>
   </head>
   <body>
-    <h1>Results of id {{ resp.id }}</h1>
+    <h2>Results of id {{ resp.id }}</h1>
     {% if resp['status'] != "ok" %}
       <p>STATUS FAILED. {{resp['status']}}</p>
       {%endif%}
