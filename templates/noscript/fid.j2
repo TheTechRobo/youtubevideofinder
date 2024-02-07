@@ -28,7 +28,7 @@ span > a:visited {
     {% for result in resp['keys'] %}
     <li>{{ result['name'] }} :
       {% if result['archived'] %}
-        <span style="background-color: black;color: {{'yellow' if result.metaonly else 'green'}};">Archived {{'(metadata only)' if result.metaonly else ''}}
+        <span style="background-color: black;color: {{'yellow' if result.metaonly else 'green'}};">Available {{'(metadata only)' if result.metaonly else ''}}
           {{ '(incl. comments)' if result.comments else '' }}
           {% if result['available'] %}<a href="{{result['available']}}">(link)</a>
           {% endif %}
@@ -36,12 +36,12 @@ span > a:visited {
       {% elif result['error'] %}
         <span style="background-color: black;color: white;">Error</span>
       {% elif not result['archived'] %}
-        <span style="background-color: black;color: red;">Not Archived</span>
+        <span style="background-color: black;color: red;">Not Available</span>
       {% else %}
         <span style="background-color: black;color: white;">Unknown</span>
       {% endif %}
       <br>
-      {{ result['note'] | safe }}
+      {{ result['note'] }}
     </li>
     {%endfor%}
     </ul>
