@@ -4,7 +4,7 @@ The classes that are used to store the response data.
 import copy
 import dataclasses
 import time
-import typing
+import typing_extensions as typing
 import re
 
 import asyncio
@@ -129,23 +129,24 @@ class YouTubeResponse(JSONDataclass):
     verdict: dict
     api_version: int = 4
 
-    def coerce_to_api_version(selfNEW, target): # pylint: disable=no-self-argument
+    def coerce_to_api_version(selfNEW, targetVersion): # pylint: disable=no-self-argument
         """
-        Downgrades the API version to one of your choice, then returns it.
+        If necessary, downgrades the API version to one of your choice, then returns it.
+        It is recommended to base your code around a specific API version and coerce it to that version.
 
         Arguments:
-            target (int): The target API version. Must be lower than self.api_version
+            targetVersion (int): The target API version. Must be lower than self.api_version
         """
         self = copy.deepcopy(selfNEW)
         currentApiVersion = self.api_version
-        if currentApiVersion < target:
+        if currentApiVersion < targetVersion:
             raise ValueError("cannot upgrade api version")
-        while self.api_version != target:
+        while self.api_version != targetVersion:
             fname = f"_convert_v{self.api_version}_to_v{self.api_version-1}"
             if not hasattr(self, fname):
                 raise ValueError("cannot downgrade any further")
             self = getattr(self, fname)()
-        assert self.api_version == target
+        assert self.api_version == targetVersion
         return self
 
     # There were no changes to the data structure between v3 and v4

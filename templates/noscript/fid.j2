@@ -1,6 +1,12 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <link href="/static/normalize.css" rel="stylesheet" type="text/css" />
+    <link href="/static/skeleton.css" rel="stylesheet" type="text/css" />
+    <link href="/static/styles.css" rel="stylesheet" />
+
 <style>
 body {
   font-family: Ubuntu, Arial, sans-serif;
@@ -14,7 +20,7 @@ span > a:visited {
 </style>
   </head>
   <body>
-    <h1>Results of id {{ resp.id }}</h1>
+    <h2>Results of id {{ resp.id }}</h1>
     {% if resp['status'] != "ok" %}
       <p>STATUS FAILED. {{resp['status']}}</p>
       {%endif%}

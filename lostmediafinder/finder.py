@@ -2,7 +2,8 @@
 All the Service implementations live here.
 """
 
-import random, time, urllib.parse, aiohttp, asyncio, typing
+import random, time, urllib.parse, aiohttp, asyncio
+import typing_extensions as typing
 from switch import Switch
 from .types import YouTubeService, methods
 
