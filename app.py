@@ -86,7 +86,7 @@ async def noscript_load():
         return "No d param provided - It should be the video id or url", 400
     id = coerce_to_id(request.args['d'])
     if not id:
-        return render_template("templates/error.j2", inp=request.args['d']), 400
+        return render_template("noscript/error.j2", inp=request.args['d']), 400
     headers = (("FinUrl", f"/noscript_load_thing.j2?id={id}"),)
     response = Response(render_template("noscript/loading.j2", id=id), headers=headers)
     return response, 302

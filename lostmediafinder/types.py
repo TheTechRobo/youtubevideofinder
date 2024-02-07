@@ -111,6 +111,9 @@ class Service(JSONDataclass):
 class YouTubeService(Service): # pylint: disable=abstract-method
     pass
 
+class InvalidVideoIdError(ValueError):
+    pass
+
 @dataclasses.dataclass
 class YouTubeResponse(JSONDataclass):
     """
@@ -200,31 +203,52 @@ class YouTubeResponse(JSONDataclass):
         return verdict
 
     @classmethod
-    async def generate(cls, id: str, includeRaw=False):
+    async def generateStream(cls, id: str, includeRaw=False):
         """
-        Runs all the Services.
+        Runs all the Services but as a generator.
+        First item is a list of all the service names.
+        Following that, all future items are service results.
+        Then None will be provided to signal that all of the results have been sent.
+        Finally, the last item is a dict containing the verdict.
         Arguments:
             id (str): The video ID
             includeRaw (bool): Whether or not to include the raw data in the `rawraw` field. If you don't need it, disable this.
         """
         if not cls.verifyId(id):
-            return cls(status="bad.id", id=id, keys=[], verdict={"video":False,"comments":False,"metaonly":False,"human_friendly":"Invalid video ID. "})
+            raise InvalidVideoIdError(id)
         keys = []
         services = cls._get_services()
         coroutines = []
         async with aiohttp.ClientSession() as session:
+            svcs = []
             for service in services:
+                svcs.append(service.name)
                 coroutines.append(service.run(id, session, includeRaw=includeRaw))
-            results = await asyncio.gather(*coroutines)
-        for result in results:
-            keys.append(result)
+            yield svcs
+            for result in asyncio.as_completed(coroutines):
+                yield await result
+        yield None
         any_comments_archived = any(map(lambda e : e.comments, keys))
         any_metaonly_archived = any(map(lambda e : e.metaonly and e.archived, keys))
         any_videos_archived = any(map(lambda e : e.archived and not e.metaonly, keys))
-        any_archived = {"video": any_videos_archived, "metaonly": any_metaonly_archived, "comments": any_comments_archived}
+        any_archived = {"video": any_videos_archived, "metaonly": any_metaonly_archived, "comments": any_comments_archived, "human_friendly": None}
         verdict = cls.create_verdict(any_archived)
         any_archived['human_friendly'] = verdict
-        return cls(id=id, status="ok", keys=keys, verdict=any_archived)
+        yield any_archived
+
+    @classmethod
+    async def generate(cls, id: str, includeRaw=False):
+        generator = cls.generateStream(id, includeRaw)
+        # ignore the list of names as that is redundant in this case
+        await anext(generator)
+        results = []
+        async for result in generator:
+            if result is None:
+                # loop is over
+                break
+            results.append(result)
+        any_archived = await anext(generator)
+        return cls(id=id, status="ok", keys=results, verdict=any_archived)
 
     def __str__(self):
         services = "Services:\n"
