@@ -11,16 +11,19 @@ Currently no documentation exists for the CLI tool.
 There are docstrings included in the module (it is contained in `lostmediafinder`), but no `setup.py` or PyPI package is currently included. This is because it is not yet 100% stable (and I plan on adding support for more websites soon).
 
 ## Frontend
-### Running in Docker(recommended):
-The software is available on Docker Hub: <https://hub.docker.com/r/thetechrobo/findyoutubevideo> Let me know if it doesn't work or if you need help.
+### Running in Docker (recommended):
+There is an included Dockerfile. I will figure out publishing to Docker Hub soon enough.
 
-Instead of modiying the gunicorn config, use `GUNICORN_<VARIABLE_NAME>` environment variables; the config is setup to work with that. For example, `GUNICORN_WORKERS` is the number of threads that are spawned to handle requests.
+Instead of modiying the Hypercorn config, use `HYPERCORN_<VARIABLE_NAME>` environment variables; the config is setup to work with that.
 
 A command like this should work (runs on port 8000; change the `-p` flag to `<whatever port you want>:8000` to change that):
 
 ```
 docker run --restart=unless-stopped -p 8000:8000 -e GUNICORN_WORKERS=4 thetechrobo/findyoutubevideo
 ```
+
+### Running outside of Docker (unsupported)
+You should be able to check the Dockerfile for what it is doing during the build (it's a glorified shell script).
 
 ## Licence
 
