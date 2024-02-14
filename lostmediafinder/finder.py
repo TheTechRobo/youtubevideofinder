@@ -35,7 +35,7 @@ class YouTube(YouTubeService):
         lastupdated = time.time()
         return cls(
             archived=archived, available=available, capcount=capcount, lastupdated=lastupdated, name=cls.getName(), note="", rawraw=rawraw,
-            metaonly=False, comments=False
+            metaonly=False, comments=False, classname=cls.__name__
         )
 
 class WaybackMachine(YouTubeService):
@@ -71,7 +71,7 @@ class WaybackMachine(YouTubeService):
         return cls(
                 archived=archived, capcount=int(archived), rawraw=rawraw,
                 available=lien, lastupdated=time.time(), name=cls.getName(),
-                note="", metaonly=ismeta, comments=False
+                note="", metaonly=ismeta, comments=False, classname=cls.__name__
         )
 
 class ArchiveOrgDetails(YouTubeService):
@@ -121,7 +121,7 @@ class ArchiveOrgDetails(YouTubeService):
         capcount = int(archived)
         return cls(
             archived=archived, capcount=capcount, available=lien, lastupdated=time.time(), name=cls.getName(), note=note,
-            rawraw=rawraw, metaonly=False, comments=False
+            rawraw=rawraw, metaonly=False, comments=False, classname=cls.__name__
         )
 
 
@@ -189,7 +189,7 @@ class ArchiveOrgCDX(YouTubeService):
         return cls(
                 archived=archived, capcount=int(archived), rawraw=None,
                 available=lien, lastupdated=time.time(), name=cls.getName(),
-                note="", metaonly=ismeta, comments=False
+                note="", metaonly=ismeta, comments=False, classname=cls.__name__
         )
 
 
@@ -223,7 +223,7 @@ class GhostArchive(YouTubeService):
         lastupdated = time.time()
         return cls(
             archived=archived, available=available, capcount=capcount, lastupdated=lastupdated, name=cls.getName(), note="", rawraw=rawraw,
-            metaonly=False, comments=False
+            metaonly=False, comments=False, classname=cls.__name__
         )
 
 class HackintYa(YouTubeService):
@@ -254,7 +254,7 @@ class HackintYa(YouTubeService):
         rawraw = (count, commentcount)
         return cls(
             archived=archived, capcount=count, comments=(len(comments) > 0), lastupdated=time.time(), name=cls.getName(),
-            note=cls.note if archived else "", rawraw=rawraw, metaonly=False
+            note=cls.note if archived else "", rawraw=rawraw, metaonly=False, classname=cls.__name__
         )
 
 FYT_UA = "FindYoutubeVideo/1.0 operated by TheTechRobo"
@@ -295,7 +295,7 @@ class DistributedYoutubeArchive(YouTubeService):
         return cls(
             archived=archived, capcount=capcount, lastupdated=lastupdated,
             name=cls.getName(), note=note, rawraw=j, metaonly=metaonly,
-            comments=comments, available=available
+            comments=comments, available=available, classname=cls.__name__
         )
 
 class Hobune(YouTubeService):
@@ -335,7 +335,7 @@ class Hobune(YouTubeService):
         return cls(
             archived=archived, capcount=1 if archived else 0,
             lastupdated=lastupdated, name=cls.getName(), note="",
-            rawraw=raw, metaonly=False, comments=False, available=available
+            rawraw=raw, metaonly=False, comments=False, available=available, classname=cls.__name__
         )
 
 class removededm(YouTubeService):
@@ -376,7 +376,7 @@ class removededm(YouTubeService):
         return cls(
             archived=archived, rawraw=rawraw, available=lien, metaonly=ismeta, comments=False,
             capcount=(1 if archived else 0), error=None, lastupdated=time.time(),
-            name=cls.getName(), note=""
+            name=cls.getName(), note="", classname=cls.__name__
         )
 
 # TODO: Make a YouTubeServiceWithCooldown or something
@@ -411,7 +411,7 @@ class Filmot(YouTubeService):
                 archived=archived, capcount=capcount,
                 lastupdated=lastupdated, name=cls.getName(), note="",
                 rawraw=rawraw, metaonly=True, comments=False,
-                available=available
+                available=available, classname=cls.__name__
         )
 
 class Playboard(YouTubeService):
@@ -444,5 +444,5 @@ class Playboard(YouTubeService):
                 archived=archived, capcount=1 if archived else 0,
                 lastupdated=lastupdated, name=cls.getName(), note=cls.note,
                 rawraw=rawraw, metaonly=True, comments=False,
-                available=available
+                available=available, classname=cls.__name__
         )
