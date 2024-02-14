@@ -85,7 +85,7 @@ class Service(JSONDataclass):
                     archived=False, capcount=0, error=rawraw,
                     lastupdated=time.time(), name=cls.getName(), note=note,
                     rawraw=None, metaonly=False, comments=False,
-                    available=None
+                    available=None, classname="Error"
             )
 
     @classmethod
