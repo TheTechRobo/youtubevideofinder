@@ -36,7 +36,7 @@
     <h4>API Documentation</h4>
 	<p><b>Please note: The API can be used to embed this site into your own code. If you just want to search for a video, <a href="/">return to the homepage</a>.</b></p>
     <h6>Call: GET <code>/api/:version/:videoid</code></h6>
-	<h6>Accepted parameters: <code>includeRaw</code> (set to include the <code>rawraw</code> field)</h6>
+	<h6>Accepted query string parameters: <code>includeRaw</code> (set to include the <code>rawraw</code> field), <code>stream</code> (stream service objects as they are processed, rather than all at the end)</h6>
     <p>Current versions available: v2, v3, v4. Documentation below only applies to the latest version.</p>
 	<u>Changelog</u>
 	<div id="changelog">
@@ -47,7 +47,7 @@
 			</ul>
 		</ul>
 	</div>
-    <b>Fields</b>
+    <b>Fields (non-streamed mode)</b>
     <dl>
         {% if fields is mapping %}
             {% for field, value in fields.items() %}
@@ -60,7 +60,15 @@
             Fail
         {% endif %}
     </dl>
-	<u>NOTE:</u> The <code>rawraw</code> field is only set if you set the <code>includeRaw</code> parameter. Example: <code>/api/v4/dQw4w9WgXcQ?includeRaw=true</code>. Please only enable this if you have to, as it will slow down loading.
+	<b>Streaming protocol</b>
+	<p>A stream of JSONL: one json object followed by a newline, then the next, etc. The order of what is sent:
+	<ul>
+		<li>Object of internal class name to on-screen name. Use this to pre-populate the list. You probably don't need the internal class name - it's only provided in case you need it for e.g. element IDs where the usable character set is limited.</li>
+		<li>Service objects (see below), as they are generated.</li>
+		<li>Null, to show that we are finished generating the service objects. (You can also use the object of class names, but this probably works better.)</li>
+		<li>A verdict.</li>
+	</ul>
+	<u>NOTE:</u> In both cases, the <code>rawraw</code> field is only set if you set the <code>includeRaw</code> parameter. Example: <code>/api/v4/dQw4w9WgXcQ?includeRaw=true</code>. Please only enable this if you have to, as it will slow down loading.
 </div>
 <div class="container">
     <b>Service Objects</b>
