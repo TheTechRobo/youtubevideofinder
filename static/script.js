@@ -63,12 +63,13 @@ function finish(vid1) {
                 dataDiv.innerHTML = `<span style="color: red;">You have been rate limited - please slow down</span>`;
                 return null;
             }
-            return response.body;
+            return response.json();
         })
         .then((data) => {
             if (data === null) {
                 return;
             }
+            console.log(`Data: ${data}`)
             let write = "<ul>";
             let keys = data.keys;
             keys.forEach((wbm) => {
