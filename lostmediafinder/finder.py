@@ -355,23 +355,21 @@ class removededm(YouTubeService):
         rawraw = None
         lien = None
         for lnk in potential_links:
-            async with session.head(lnk, allow_redirects=False, timeout=15) as response:
-                redirect = response.headers.get("location")
-                archived = bool(redirect) or response.status == 200 # if there's a redirect, it's archived
-                rawraw = (redirect, response.status)
+            async with session.head(lnk, timeout=15, allow_redirects=True) as response:
+                archived = response.status == 200 # if there's a redirect, it's archived
+                rawraw = response.status
                 if archived:
                     # No more searching needed, it's archived
                     lien = lnk
                     break
         if not archived:
             link = f"https://removededm.com/wiki/{id}"
-            async with session.head(link, allow_redirects=False, timeout=15) as response:
-                redirect = response.headers.get("location")
-                archived = bool(redirect) or response.status == 200
+            async with session.head(link, timeout=15, allow_redirects=True) as response:
+                archived = response.status == 200
                 if archived:
                     lien = link
                     ismeta = True
-                rawraw = (redirect, response.status)
+                rawraw = response.status
 
         return cls(
             archived=archived, rawraw=rawraw, available=lien, metaonly=ismeta, comments=False,

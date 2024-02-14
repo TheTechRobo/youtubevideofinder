@@ -59,7 +59,11 @@ function finish(vid1) {
                 dataDiv.innerHTML = `<span style="color: red;">Internal server error - this is not your fault, please try again</span>`;
                 return null;
             }
-            return response.json();
+            if (response.status === 429) {
+                dataDiv.innerHTML = `<span style="color: red;">You have been rate limited - please slow down</span>`;
+                return null;
+            }
+            return response.body;
         })
         .then((data) => {
             if (data === null) {
