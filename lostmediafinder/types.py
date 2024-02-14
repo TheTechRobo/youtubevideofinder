@@ -5,7 +5,6 @@ import copy
 import dataclasses
 import time
 import typing_extensions as typing
-import inspect
 import re
 
 import asyncio
@@ -79,7 +78,6 @@ class Service(JSONDataclass):
             return res
         except Exception as ename: # pylint: disable=broad-except
             note = f"An error occured while retrieving data from {cls.getName()}."
-            print(ename)
             rawraw = f"{type(ename)}: {repr(ename)}"
             return cls(
                     archived=False, capcount=0, error=rawraw,
@@ -135,7 +133,7 @@ class YouTubeStreamResponse:
     A streamed response, as an iterable. It is not recommended to use the iterable directly;
     instead, write code around a specific API version and use `coerce_to_api_version` to ensure
     that you are using it.
-    
+
     Note that when streaming, the minimum API version is 4.
     """
     api_version: int = API_VERSION
@@ -150,7 +148,7 @@ class YouTubeStreamResponse:
         return self
 
     async def __anext__(self):
-        return anext(self.gen)
+        return await anext(self.gen)
 
     async def coerce_to_api_version(self, targetVersion):
         """
@@ -165,11 +163,17 @@ class YouTubeStreamResponse:
         # The function calls a direct current to target rather than current to current-1
         # because otherwise we can't be 100% sure that we can downgrade to the correct API version
         # and we can't "un-get" the item from the generator.
-        arrOfNamesFunction = getattr(self, f"_convert_narr_v{self.api_version}_to_v{targetVersion}", None)
-        serviceObjectFunction = getattr(self, f"_convert_service_v{self.api_version}_to_v{targetVersion}", None)
-        verdictObjectFunction = getattr(self, f"_convert_verdict_v{self.api_version}_to_v{targetVersion}", None)
-        if not arrOfNamesFunction or not serviceObjectFunction or not verdictObjectFunction:
-            raise TargetAPIVersionTooLowError(targetVersion)
+        if targetVersion != self.api_version:
+            arrOfNamesFunction = getattr(self, f"_convert_narr_v{self.api_version}_to_v{targetVersion}", None)
+            serviceObjectFunction = getattr(self, f"_convert_service_v{self.api_version}_to_v{targetVersion}", None)
+            verdictObjectFunction = getattr(self, f"_convert_verdict_v{self.api_version}_to_v{targetVersion}", None)
+            if not arrOfNamesFunction or not serviceObjectFunction or not verdictObjectFunction:
+                raise TargetAPIVersionTooLowError(targetVersion)
+        else:
+            # same as API version: do dumb wrappers
+            arrOfNamesFunction = lambda a : a
+            serviceObjectFunction = lambda a : a
+            verdictObjectFunction = lambda a : a
         arrayOfNames = await anext(self.gen)
         yield arrOfNamesFunction(arrayOfNames)
         async for item in self.gen:
@@ -287,13 +291,15 @@ class YouTubeResponse(JSONDataclass):
         services = cls._get_services()
         coroutines = []
         async with aiohttp.ClientSession() as session:
-            svcs = []
+            svcs = {}
             for service in services:
-                svcs.append(service.name)
+                svcs[service.__name__] = service.getName()
                 coroutines.append(service.run(id, session, includeRaw=includeRaw))
             yield svcs
             for result in asyncio.as_completed(coroutines):
-                yield await result
+                retval = await result
+                yield retval
+                keys.append(retval)
         yield None
         any_comments_archived = any(map(lambda e : e.comments, keys))
         any_metaonly_archived = any(map(lambda e : e.metaonly and e.archived, keys))

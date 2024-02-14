@@ -1,15 +1,15 @@
-from flask import Flask, render_template, request, Response, redirect, send_from_directory
-import re, urllib.parse, yaml, json
+from quart import Quart, jsonify, render_template, request, Response, redirect, send_from_directory, jsonify
+import re, yaml, json, typing
 import lostmediafinder
 
-app = Flask(__name__)
+app = Quart(__name__)
 
 with open('config.yml', 'r') as file:
     config_yml = yaml.safe_load(file)
 
 @app.route("/robots.txt")
 async def robots():
-    return send_from_directory("static", "robots.txt")
+    return await send_from_directory("static", "robots.txt")
 
 @app.route("/find/<id>")
 async def youtubev2(id):
@@ -20,16 +20,19 @@ async def youtubev2(id):
 
 async def wrapperYT(id, includeRaw):
     """
-    Wrapper for generateAsync
+    Wrapper for generate
     """
     return await lostmediafinder.YouTubeResponse.generate(id, includeRaw)
 
+async def wrapperYTS(id, includeRaw):
+    """
+    Wrapper for generateStream
+    """
+    return await lostmediafinder.YouTubeResponse.generateStream(id, includeRaw)
+
 @app.route("/api/v<int:v>/<site>/<id>")
 @app.route("/api/v<int:v>/<id>")
-async def youtube(v, id, site="youtube", json=True):
-    """
-    Wrapper around lostmediafinder
-    """
+async def youtube(v, id, site="youtube", jsn=True):
     includeRaw = True
     if v == 1:
         return "This API version is no longer supported.", 410
@@ -37,20 +40,32 @@ async def youtube(v, id, site="youtube", json=True):
         return "Unrecognised API version", 404
     if site == "youtube":
         includeRaw = True
+        stream = False
         if v >= 4:
+            stream = "stream" in request.args
             # Versions 4 and higher only provide `rawraw` if you ask for it
             includeRaw = "includeRaw" in request.args
-        r = (await wrapperYT(id, includeRaw=includeRaw)).coerce_to_api_version(v)
-        if json:
-            return r.json()
-        return r
+        if stream:
+            async def run():
+                r = (await wrapperYTS(id, includeRaw=includeRaw)).coerce_to_api_version(v)
+                async for item in r:
+                    if type(item) == dict or item is None:
+                        yield json.dumps(item) + "\n"
+                    else:
+                        yield item.json() + "\n"
+            return run()
+        else:
+            r = (await wrapperYT(id, includeRaw=includeRaw)).coerce_to_api_version(v)
+            if jsn:
+                return r.json()
+            return r
     return "Unrecognised site", 404
 
 @app.route("/noscript_init.html")
 async def noscript_init():
     if id := request.args.get("d"):
         return redirect("/noscript_load.html?d=" + id)
-    return render_template("noscript/init.j2")
+    return await render_template("noscript/init.j2")
 
 ID_PATTERN = re.compile(r'^[A-Za-z0-9_-]{10}[AEIMQUYcgkosw048]$')
 PATTERNS = [
@@ -86,9 +101,9 @@ async def noscript_load():
         return "No d param provided - It should be the video id or url", 400
     id = coerce_to_id(request.args['d'])
     if not id:
-        return render_template("noscript/error.j2", inp=request.args['d']), 400
+        return await render_template("noscript/error.j2", inp=request.args['d']), 400
     headers = (("FinUrl", f"/noscript_load_thing.j2?id={id}"),)
-    response = Response(render_template("noscript/loading.j2", id=id), headers=headers)
+    response = Response(await render_template("noscript/loading.j2", id=id), headers=headers)
     return response, 302
 
 @app.route("/api/coerce_to_id")
@@ -104,20 +119,8 @@ async def coerce_to_id_endpoint():
 async def load_thing():
     if not request.args.get("id"):
         return "Missing id parameter", 400
-    t = await youtube(3, request.args['id'], "youtube", json=False)
-    return render_template("noscript/fid.j2", resp=t)
-
-@app.after_request
-async def apply_json_contenttype(response):
-    if not request.path.startswith("/api"):
-        return response
-    try:
-        json.loads(response.get_data(True))
-    except json.JSONDecodeError:
-        # Not JSON
-        return response
-    response.content_type = "application/json"
-    return response
+    t = await youtube(3, request.args['id'], "youtube", jsn=False)
+    return await render_template("noscript/fid.j2", resp=t)
 
 @app.route("/")
 async def index():
@@ -126,7 +129,7 @@ async def index():
     """
     default = request.args.get("q") or ""
     default_id = coerce_to_id(default) or ""
-    return render_template("index.j2", default=default, default_id=default_id, methods=get_enabled_methods())
+    return await render_template("index.j2", default=default, default_id=default_id, methods=get_enabled_methods())
 
 # The following code should be taken out and shot
 def parse_changelog(changelog):
@@ -187,4 +190,4 @@ async def api():
     # Parse the attributes list
     responseDocstring = await parse_lines(rChangelog[0].split("Attributes:\n")[1].strip().split("\n"))
     serviceDocstring  = await parse_lines(sChangelog[0].split("Attributes:\n")[1].strip().split("\n"))
-    return render_template("api.j2", fields=responseDocstring, services=serviceDocstring, changelog=changelog)
+    return await render_template("api.j2", fields=responseDocstring, services=serviceDocstring, changelog=changelog)
