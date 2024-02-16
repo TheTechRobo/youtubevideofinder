@@ -1,0 +1,27 @@
+<!-- DOESN'T WORK : Links embedded in the `content` property are not clickable -->
+<svg version="1.1"
+     xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink">
+<!-- this is an ugly hack so we can create an <a> element from CSS -->
+<!-- please never ever use this in real code -->
+
+    <!-- Use foreignObject if available -->
+    <!-- If it is available, hide the fallback <a> -->
+    <!-- why do we use both? <a> is supported better in older browsers,
+         but for some reason Opera likes to be different and it was introduced in a later version
+    -->
+    <!-- Currently, for simplicity, we only add the <a>; if you do want to add more browser support,
+         I would recommend having the <foreignObject> and add a stylesheet to it that hides the <a>
+    -->
+    <!-- I'm far too lazy to do that myself, but you can try it :P -->
+    
+     <foreignObject x="0" y="1em" width="6400" height="1400em">
+          <div xmlns="http://www.w3.org/1999/xhtml">
+               <iframe src="/">HELP</iframe>
+          </div>
+     </foreignObject>
+
+    <!--<a href="{{link}}" xlink:href="{{link}}" id="#hacky-thing">
+        <text x="0" y="1em">(link)</text>
+    </a>-->
+</svg>
