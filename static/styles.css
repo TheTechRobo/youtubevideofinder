@@ -106,37 +106,35 @@ p {
 
 /* Dark Mode Adjustments */
 
-html.dark, html.dark body, html.dark input {
-  color: rgb(203 213 225) !important;
-  background-color: #1d243d !important;
-}
+@media (prefers-color-scheme: dark) {
+  html, body, input {
+    color: rgb(203 213 225) !important;
+    background-color: #1d243d !important;
+  }
 
-html.dark #theme-select {
-  filter: invert(100%);
-}
+  button {
+    background-color: rgba(50, 50, 50) !important;
+    color: rgb(203 213 225);
+  }
 
-html.dark button {
-  background-color: rgba(50, 50, 50) !important;
-  color: rgb(203 213 225);
-}
+  #input-section {
+    background-image: linear-gradient(#0e1323, #2e1323) !important;
+  }
 
-html.dark #input-section {
-  background-image: linear-gradient(#0e1323, #2e1323) !important;
-}
+  a {
+    color: orange;
+  }
 
-html.dark a {
-  color: orange;
-}
+  a:visited {
+    color: red;
+  }
 
-html.dark a:visited {
-  color: red;
-}
-
-html.dark code {
+  code {
     background-color: darkblue;
     color: lightgreen;
-}
+  }
 
-details > summary {
+  details > summary {
     display: list-item;
+  }
 }
