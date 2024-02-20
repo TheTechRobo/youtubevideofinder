@@ -16,7 +16,7 @@ async def youtubev2(id):
     """
     Provides backwards compatibility for the old endpoint.
     """
-    return (await lostmediafinder.YouTubeResponse.generate(id)).coerce_to_api_version(2).json()
+    return (await lostmediafinder.YouTubeResponse.generate(id)).coerce_to_api_version(2).json(), {"Content-Type": "application/json"}
 
 async def wrapperYT(id, includeRaw):
     """
@@ -53,11 +53,11 @@ async def youtube(v, id, site="youtube", jsn=True):
                         yield json.dumps(item) + "\n"
                     else:
                         yield item.json() + "\n"
-            return run()
+            return run(), {"Content-Type": "application/json"}
         else:
             r = (await wrapperYT(id, includeRaw=includeRaw)).coerce_to_api_version(v)
             if jsn:
-                return r.json()
+                return r.json(), {"Content-Type": "application/json"}
             return r
     return "Unrecognised site", 404
 
