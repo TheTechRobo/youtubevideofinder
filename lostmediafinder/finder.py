@@ -288,7 +288,7 @@ class DistributedYoutubeArchive(YouTubeService):
                 del j['contributions']
                 archived = True
         capcount = j['contributions_length']
-        note = "One or more contributors to the Distributed YouTube Archive have the video. Join their Discord server and ask for help." if archived else ""
+        note = "One or more contributors to the Distributed YouTube Archive have the video. Join their Discord server by clicking the link and ask for help." if archived else ""
         metaonly = False
         comments = None # we can't tell whether there are comments or not
         available = "https://discord.gg/YNeVJ72NS4" if archived else None
