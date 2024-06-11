@@ -291,7 +291,7 @@ class DistributedYoutubeArchive(YouTubeService):
         note = "One or more contributors to the Distributed YouTube Archive have the video. Join their Discord server by clicking the link and ask for help." if archived else ""
         metaonly = False
         comments = None # we can't tell whether there are comments or not
-        available = "https://discord.gg/YNeVJ72NS4" if archived else None
+        available = "https://discord.gg/ZvzyRWTujK" if archived else None
         return cls(
             archived=archived, capcount=capcount, lastupdated=lastupdated,
             name=cls.getName(), note=note, rawraw=j, metaonly=metaonly,
