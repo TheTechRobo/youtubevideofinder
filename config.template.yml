@@ -47,3 +47,7 @@ methods:
   removededm:
     title: Removed.edm
     enabled: true
+
+  odysee:
+    title: Odysee
+    enabled: true
