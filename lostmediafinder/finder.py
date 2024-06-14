@@ -444,3 +444,41 @@ class Playboard(YouTubeService):
                 rawraw=rawraw, metaonly=True, comments=False,
                 available=available, classname=cls.__name__
         )
+
+class Odysee(YouTubeService):
+    """
+    Queries the LBRY YouTube Sync API to find out whether the video has been mirrored to Odysee.
+    """
+    name = methods['odysee']['title']
+    configId = "odysee"
+
+    @classmethod
+    async def _run(cls, id, session: aiohttp.ClientSession):
+        user_agent = FYT_UA
+        lastupdated = time.time()
+        async with session.get(f"https://api.lbry.com/yt/resolve?video_ids={id}") as resp:
+            status = resp.status
+            if status != 200:
+                raise RuntimeError(f"LBRY API returned bad status code {status}")
+            j = await resp.json()
+        if len(j) == 0: # pylint: disable=simplifiable-if-statement
+            raise ValueError("Server returned empty response!")
+        if "data" not in j:
+            raise ValueError("No \"data\" field in response!")
+        if "videos" not in j["data"]:
+            raise ValueError("No \"videos\" field in response!")
+        if id not in j["data"]["videos"]:
+            raise ValueError("No video ID field in response!")
+        odyseeId = j["data"]["videos"][id]
+        if odyseeId is None:
+            archived = False
+            available = None
+        else:
+            odyseeLinkId = odyseeId.replace("#", ":")
+            archived = True
+            available = f"https://odysee.com/{odyseeLinkId}"
+        return cls(
+            archived=archived, capcount=1, lastupdated=lastupdated,
+            name=cls.getName(), note="", rawraw=j, metaonly=False,
+            comments=False, available=available, classname=cls.__name__
+        )
