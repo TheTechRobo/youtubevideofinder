@@ -445,6 +445,37 @@ class Playboard(YouTubeService):
                 available=available, classname=cls.__name__
         )
 
+class AltCensored(YouTubeService):
+    """
+    Queries altCensored for whether it's archived or not.
+    altCensored does not store any videos. Instead, it links to archived versions.
+    """
+    name = methods["altcensored"]["title"]
+    note = ""
+    configId = "altcensored"
+
+    @classmethod
+    async def _run(cls, id, session: aiohttp.ClientSession) -> typing.Self:
+        user_agent = FYT_UA
+        url = f"https://altcensored.com/watch?v={id}"
+        async with session.get(url, headers={"User-Agent": user_agent}) as resp:
+            code = resp.status
+        lastupdated = time.time()
+        available = None
+        if code == 200:
+            archived = True
+            available = url
+        elif code == 404:
+            archived = False
+        else:
+            raise AssertionError(f"bad status code {code}")
+        return cls(
+                archived=archived, capcount=1 if archived else 0,
+                lastupdated=lastupdated, name=cls.getName(), note=cls.note,
+                rawraw=None, comments=False, available=available,
+                metaonly=False, classname=cls.__name__
+        )
+
 class Odysee(YouTubeService):
     """
     Queries the LBRY YouTube Sync API to find out whether the video has been mirrored to Odysee.

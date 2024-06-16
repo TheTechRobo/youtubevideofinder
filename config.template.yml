@@ -51,3 +51,7 @@ methods:
   odysee:
     title: Odysee
     enabled: true
+
+  altcensored:
+    title: altCensored
+    enabled: true
