@@ -1,4 +1,4 @@
-from quart import Quart, jsonify, render_template, request, Response, redirect, send_from_directory, jsonify
+from quart import Quart, render_template, request, Response, redirect, send_from_directory, abort
 import re, yaml, json, typing
 import lostmediafinder
 
@@ -121,6 +121,12 @@ async def load_thing():
         return "Missing id parameter", 400
     t = await youtube(3, request.args['id'], "youtube", jsn=False)
     return await render_template("noscript/fid.j2", resp=t)
+
+@app.route("/noscript/wtf.svg")
+async def wtf():
+    if url := request.args.get("url"):
+        return await render_template("noscript/uglylinkhack.j2", link=url), {"Content-Type": "image/svg+xml"}
+    abort(400)
 
 @app.route("/")
 async def index():
