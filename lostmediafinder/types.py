@@ -39,7 +39,7 @@ class Service(JSONDataclass):
     """
     archived: bool
     capcount: int
-    lastupdated: int
+    lastupdated: float
     name: str
     note: str
     rawraw: typing.Any
@@ -49,7 +49,7 @@ class Service(JSONDataclass):
 
     available: typing.Optional[str] = None
     suppl: str = ""
-    error: typing.Optional[bool] = None
+    error: typing.Optional[typing.Any] = None
 
     configId = None
 
@@ -85,7 +85,7 @@ class Service(JSONDataclass):
                     archived=False, capcount=0, error=rawraw,
                     lastupdated=time.time(), name=cls.getName(), note=note,
                     rawraw=None, metaonly=False, comments=False,
-                    available=None, classname="Error"
+                    available=None, classname=cls.__name__
             )
 
     @classmethod
