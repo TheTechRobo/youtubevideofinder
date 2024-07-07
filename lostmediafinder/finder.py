@@ -423,6 +423,7 @@ class Playboard(YouTubeService):
 
     @classmethod
     async def _run(cls, id, session: aiohttp.ClientSession) -> typing.Self:
+        note = cls.note
         user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.%s.0.0 Safari/537.36"
         user_agent = user_agent % random.randint(0, 100)
         url = f"https://playboard.co/en/video/{id}"
@@ -431,16 +432,19 @@ class Playboard(YouTubeService):
         rawraw = {"status_code": code, "ua_used": user_agent}
         lastupdated = time.time()
         available = None
-        if code in {200, 429}:
+        if code == 200:
             archived = True
             available = url
+        elif code == 429:
+            archived = False
+            note = "You have been rate-limited by Playboard."
         elif code == 404:
             archived = False
         else:
             raise AssertionError(f"bad status code {code}")
         return cls(
                 archived=archived, capcount=1 if archived else 0,
-                lastupdated=lastupdated, name=cls.getName(), note=cls.note,
+                lastupdated=lastupdated, name=cls.getName(), note=note,
                 rawraw=rawraw, metaonly=True, comments=False,
                 available=available, classname=cls.__name__
         )
