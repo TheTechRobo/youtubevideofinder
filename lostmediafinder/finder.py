@@ -517,3 +517,35 @@ class Odysee(YouTubeService):
             name=cls.getName(), note="", rawraw=j, metaonly=False,
             comments=False, available=available, classname=cls.__name__
         )
+
+class PreserveTube(YouTubeService):
+    """
+    Queries PreserveTube for whether it's archived or not.
+    """
+    name = methods["preservetube"]["title"]
+    note = ""
+    configId = "preservetube"
+
+    @classmethod
+    async def _run(cls, id, session: aiohttp.ClientSession) -> typing.Self:
+        user_agent = FYT_UA
+        url = f"https://api.preservetube.com/video/{id}"
+        async with session.get(url, headers={"User-Agent": user_agent, "Accept": "application/json"}) as resp:
+            json = await resp.json()
+        lastupdated = time.time()
+        available = None
+        if e := json.get("error"):
+            if e == "404":
+                archived = False
+            else:
+                raise RuntimeError("Unexpected error field")
+        else:
+            assert "title" in json
+            archived = True
+            available = f"https://preservetube.com/watch?v={id}"
+        return cls(
+                archived=archived, capcount=1 if archived else 0,
+                lastupdated=lastupdated, name=cls.getName(), note=cls.note,
+                rawraw=None, comments=False, available=available,
+                metaonly=False, classname=cls.__name__
+        )

@@ -55,3 +55,7 @@ methods:
   altcensored:
     title: altCensored
     enabled: true
+
+  preservetube:
+    title: PreserveTube
+    enabled: true
