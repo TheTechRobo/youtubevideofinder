@@ -48,7 +48,7 @@ class WaybackMachine(YouTubeService):
     @classmethod
     async def _run(cls, id, session: aiohttp.ClientSession) -> typing.Self:
         ismeta = False
-        lien = f"https://web.archive.org/web/2oe_/http://wayback-fakeurl.archive.org/yt/{id}"
+        lien = f"https://web.archive.org/web/1oe_/http://wayback-fakeurl.archive.org/yt/{id}"
         async with session.head(lien, allow_redirects=False, timeout=15) as response:
             redirect = response.headers.get("location")
             archived = bool(redirect) # if there's a redirect, it's archived
