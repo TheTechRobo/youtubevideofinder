@@ -350,7 +350,7 @@ class removededm(YouTubeService):
         ismeta = False
         # Note: Video IDs starting with an underscore are redirected to have a period at the start due to
         #       limitations in the wiki software
-        potential_links = (f"https://removededm.com/wiki/File:{id}.mp4", f"https://removededm.com/wiki/File:{id}.webm")
+        potential_links = (f"https://removededm.com/File:{id}.mp4", f"https://removededm.com/File:{id}.webm")
         archived = False # not technically necessary but makes linters happy
         rawraw = None
         lien = None
@@ -363,7 +363,7 @@ class removededm(YouTubeService):
                     lien = lnk
                     break
         if not archived:
-            link = f"https://removededm.com/wiki/{id}"
+            link = f"https://removededm.com/{id}"
             async with session.head(link, timeout=15, allow_redirects=True) as response:
                 archived = response.status == 200
                 if archived:
