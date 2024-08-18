@@ -231,7 +231,7 @@ class HackintYa(YouTubeService):
     Queries #youtubearchive for the video you requested.
     """
     name = methods["hackint_ya"]["title"]
-    note = ("At the request of #youtubearchive's maintainer, instructions to request videos have been removed. If you are significantly involved in archiving or open source, you have a legitimate research or humanitarian purpose, or are able to contribute materially, contact me at thetechrobo@proton.me.")
+    note = ("Video retrieval is currently not available. Please check back later for access instructions.")
     configId = "hackint_ya"
 
     @classmethod
