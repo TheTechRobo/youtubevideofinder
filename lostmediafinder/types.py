@@ -294,7 +294,7 @@ class YouTubeResponse(JSONDataclass):
         keys = []
         services = cls._get_services()
         coroutines = []
-        async with aiohttp.ClientSession() as session:
+        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=20)) as session:
             svcs = {}
             for service in services:
                 svcs[service.__name__] = service.getName()
