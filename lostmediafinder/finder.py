@@ -231,9 +231,7 @@ class HackintYa(YouTubeService):
     Queries #youtubearchive for the video you requested.
     """
     name = methods["hackint_ya"]["title"]
-    note = ("At the request of #youtubearchive's maintainer, instructions to request videos have been removed. "
-            "If you have a legitimate research or humanitarian purpose, or are able to contribute materially, contact me at thetechrobo@proton.me "
-            "and I will forward your request. Please allow up to 2-4 weeks for me to get back to you.")
+    note = "Video retrieval is currently not available. Please check back later for access instructions."
     configId = "hackint_ya"
 
     @classmethod
@@ -313,7 +311,7 @@ class Hobune(YouTubeService):
     async def _run(cls, id, session: aiohttp.ClientSession):
         while time.time() - cls.lastretrieved < cls.cooldown:
             await asyncio.sleep(0.1)
-        user_agent = "FindYoutubeVideo/1.0 operated by thetechrobo@proton.me"
+        user_agent = "FindYoutubeVideo/1.0 operated by thetechrobo@thetechrobo.ca"
         urls_to_try = ("https://hobune.stream/videos/{}", "https://hobune.stream/tpa-h/videos/{}")
         raw = []
         archived = False
