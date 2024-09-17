@@ -35,7 +35,7 @@ class Service(JSONDataclass):
         rawraw (Any): The data used to check whether the video is archived on that particular service. For example, for GhostArchive, it would be the HTTP status code.
         metaonly (bool): True if only the metadata is archived. This value should not be relied on!
         comments (bool): True if the comments are archived. This value should not be relied on!
-        maybe_paywalled (str): True if the service might require payment.
+        maybe_paywalled (bool): True if the service might require payment.
         classname (str): The internal class name, useful for streaming mode.
     """
     archived: bool
