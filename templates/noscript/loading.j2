@@ -4,11 +4,39 @@
     <!-- This is a meta refresh so that the loading screen is shown while the next page is loading -->
     <!-- With a redirect, the browser will not paint until the redirect chain is complete -->
     <meta http-equiv="refresh" content="0; url=/noscript_load_thing.html?id={{id}}" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <link href="/static/normalize.css" rel="stylesheet" type="text/css" />
+    <link href="/static/skeleton.css" rel="stylesheet" type="text/css" />
+    <link href="/static/styles.css" rel="stylesheet" />
     <meta name="robots" content="noindex" />
+
+<style>
+html, body, .container {
+    margin: 0px;
+    height: 100%;
+    width: 100%;
+}
+
+.container {
+    display: flex;
+    align-items: center;
+}
+
+p {
+    text-align: center;
+    width: 100%;
+    flex-grow: 1;
+}
+</style>
+
   </head>
   <body>
     <div class="container">
-        <img src="/static/loading.gif" width="25" height="25" />Loading could take up to 45 seconds.</img>
+        <p>
+            <img src="/static/loading.gif" style="height: 1em;" /> Loading could take up to 45 seconds.
+        </p>
     </div>
   </body>
 </html>

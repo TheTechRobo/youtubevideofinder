@@ -7,18 +7,30 @@
     <link href="/static/skeleton.css" rel="stylesheet" type="text/css" />
     <link href="/static/styles.css" rel="stylesheet" />
 
-    <meta name="robots" content="noindex">
+    <meta name="robots" content="noindex" />
 
-    <style>
-      .content {
-        text-align: center;
-        align-items: center;
-      }
-    </style>
+<style>
+html, body, .content {
+    margin: 0px;
+    height: 100%;
+    width: 100%;
+}
+
+.container {
+    display: flex;
+    align-items: center;
+}
+
+p {
+    text-align: center;
+    width: 100%;
+    flex-grow: 1;
+}
+</style>
   </head>
   <body>
     <div class="container content">
-      <p>Awaiting input...</p>
+      <p>You are using the noscript fallback. It might not be as polished as the JavaScript-based frontend.</p>
     </div>
   </body>
 </html>
