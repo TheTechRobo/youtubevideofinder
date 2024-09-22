@@ -32,7 +32,7 @@ span > a:visited {
       {% if result['archived'] %}
         <span style="background-color: black;color: {{'yellow' if result.metaonly else 'green'}};">Available {{'(metadata only)' if result.metaonly else ''}}
           {{ '(incl. comments)' if result.comments else '' }}
-          {% if result['available'] %}<a href="{{result['available']}}">(link)</a>
+          {% if result['available'] %}<a href="{{result['available']}}" target="_top">(link)</a>
           {% endif %}
         </span>
       {% elif result['error'] %}
