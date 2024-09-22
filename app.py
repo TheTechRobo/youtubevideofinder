@@ -22,7 +22,10 @@ async def wrapperYT(id, includeRaw):
     """
     Wrapper for generate
     """
-    return await lostmediafinder.YouTubeResponse.generate(id, includeRaw)
+    try:
+        return await lostmediafinder.YouTubeResponse.generate(id, includeRaw)
+    except lostmediafinder.types.InvalidVideoIdError:
+        return {"status": "bad.id", "id": None}
 
 async def wrapperYTS(id, includeRaw):
     """
