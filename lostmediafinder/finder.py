@@ -244,12 +244,12 @@ class HackintYa(YouTubeService):
         vid = id
         auth = aiohttp.BasicAuth(username, password)
         comments = False
-        async with session.get("https://ya.borg.xyz/cgi-bin/capture-count?v=" + vid, auth=auth, timeout=5) as resp:
+        async with session.get("https://ya.borg.xyz/cgi-bin/capture-count?v=" + vid, auth=auth, timeout=10) as resp:
             count = await resp.text()
         if not count:
             raise ValueError("Server returned empty response!")
         count = int(count)
-        async with session.get("https://ya.borg.xyz/cgi-bin/capture-comment-counts?v=" + vid, auth=auth) as resp:
+        async with session.get("https://ya.borg.xyz/cgi-bin/capture-comment-counts?v=" + vid, auth=auth, timeout=10) as resp:
             commentcount = await resp.text()
         archived = (count > 0)
         comments = [i for i in commentcount.split("\n") if i.strip("∅\n") and i.strip() != "0"]
