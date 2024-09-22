@@ -37,6 +37,7 @@ function makeServiceEntry(result) {
     } else {
         colour = "red";
     }
+
     var isarchived = result.archived ? "Available" : "Not Available";
     if (result.error !== null) {
         isarchived = "Unknown";
@@ -93,15 +94,23 @@ function finish(vid1) {
     fetch(`api/v4/youtube/${vid}?stream`)
         .then((response) => {
             if (response.status === 410 || response.status === 404) {
-                dataDiv.innerHTML = `<span style="color: red;">API version is not supported - this should never happen</span>`;
+                dataDiv.innerHTML = `<span style="color: red;">API version is not supported - this should never happen, please report this</span>`;
                 return null;
             }
             if (response.status === 500) {
                 dataDiv.innerHTML = `<span style="color: red;">Internal server error - this is not your fault, please try again</span>`;
                 return null;
             }
-            if (response.status === 429) {
+                if (response.status === 429) {
                 dataDiv.innerHTML = `<span style="color: red;">You have been rate limited - please slow down</span>`;
+                return null;
+            }
+            if (response.status === 502) {
+                dataDiv.innerHTML = `<span style="color: red;">The server is currently down - please wait a minute and try again</spawn>`;
+                return null;
+            }
+            if (response.status !== 200) {
+                dataDiv.innerHTML = `<span style="color: red;">Received unknown status code ${response.status}</span>`;
                 return null;
             }
             return response.body.getReader();
@@ -121,6 +130,8 @@ function finish(vid1) {
             let state = possible_states.Preparation;
             let currentline = "";
             let elements = {};
+            let numArchived = 0;
+            let dd = document.getElementById("not-archived");
             function processLine(line) {
                 if (line === "" || line === "\n") {
                     return;
@@ -133,6 +144,7 @@ function finish(vid1) {
                             ul.appendChild(elements[key]);
                         }
                         state = possible_states.Generation;
+                        numArchived = Object.keys(data).length;
                         break;
                     }
                     case possible_states.Generation: {
@@ -141,11 +153,37 @@ function finish(vid1) {
                             return;
                         }
                         const cln = data.classname;
+                        if (!data.archived) {
+                            numArchived--;
+                            if (data.error === null) {
+                                elements[cln].parentElement.removeChild(elements[cln]);
+                                if (dd === null) {
+                                    dd = document.createElement("details");
+                                    let summary = document.createElement("summary");
+                                    let ul = document.createElement("ul");
+                                    dd.id = "not-archived";
+                                    summary.innerHTML = "Not Archived";
+                                    dd.appendChild(summary);
+                                    dd.appendChild(ul);
+                                    dataDiv.appendChild(dd);
+                                }
+                                dd.querySelector("ul").appendChild(elements[cln]);
+                            }
+                        }
                         elements[cln].querySelector(".result").innerHTML = makeServiceEntry(data);
                         elements[cln].setAttribute("data-status", "done");
                         break;
                     }
                     case possible_states.Verdict: {
+                        console.log(`NumArchived=${numArchived}`);
+                        if (numArchived <= 0) {
+                            if (dd !== null) {
+                                dd.setAttribute("open", "true");
+                            }
+                            let p = document.createElement("p");
+                            p.innerHTML = "The video could not be found. This doesn't mean that the video is lost, only that this site couldn't find it. If you know the title, try looking around with a search engine.";
+                            dataDiv.prepend(p);
+                        }
                         return;
                     }
                     default: {

@@ -75,6 +75,11 @@ button[disabled] {
     background-color: black;
 }
 
+.white {
+    color: white;
+    background-color: black;
+}
+
 #data-section {
     flex: 1 1 auto;
 }
@@ -149,5 +154,10 @@ p {
 
   details > summary {
     display: list-item;
+    cursor: pointer;
   }
+}
+
+#data > ul {
+  margin-bottom: 0;
 }
