@@ -205,11 +205,13 @@ class GhostArchive(YouTubeService):
         link = f"https://ghostarchive.org/varchive/{id}"
         async with session.get(link, timeout=5) as resp:
             code = resp.status
+            ct = await resp.text()
         rawraw = code
         archived = None
         with Switch(code) as case:
             if case(200):
                 archived = True
+                assert "Visit the main page" in ct
             elif case(404):
                 archived = False
             elif case(500):
