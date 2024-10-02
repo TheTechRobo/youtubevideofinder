@@ -115,7 +115,7 @@ async def coerce_to_id_endpoint():
         return '"No d param provided"', 400
     id = coerce_to_id(request.args['d'])
     if not id:
-        return '"Could not parse the video ID out of that"', 400
+        return '"Unable to find a video ID"', 400
     return {"data":id}
 
 @app.route("/noscript_load_thing.html")
