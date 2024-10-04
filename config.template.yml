@@ -61,4 +61,4 @@ methods:
     enabled: true
 
 # uncomment below to set a user agent
-# user-agent: FindYoutubeVideo/1.0 operated by TheTechRobo
+# user_agent: FindYoutubeVideo/1.0 operated by TheTechRobo

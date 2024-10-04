@@ -18,7 +18,7 @@ from snscrape.base import _JSONDataclass as JSONDataclass
 with open('config.yml', 'r') as file:
     config_yml = yaml.safe_load(file)
     methods = config_yml["methods"]
-    user_agent = config_yml.get("user-agent") # defaults to None if not set
+    user_agent = config_yml.get("user_agent") # defaults to None if not set
 
 @dataclasses.dataclass
 class Service(JSONDataclass):
