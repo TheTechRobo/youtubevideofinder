@@ -18,6 +18,7 @@ from snscrape.base import _JSONDataclass as JSONDataclass
 with open('config.yml', 'r') as file:
     config_yml = yaml.safe_load(file)
     methods = config_yml["methods"]
+    user_agent = config_yml.get("user-agent") # defaults to None if not set
 
 @dataclasses.dataclass
 class Service(JSONDataclass):
@@ -294,7 +295,10 @@ class YouTubeResponse(JSONDataclass):
         keys = []
         services = cls._get_services()
         coroutines = []
-        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=20)) as session:
+        headers = {}
+        if user_agent:
+            headers["User-Agent"] = user_agent
+        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=20), headers=headers) as session:
             svcs = {}
             for service in services:
                 svcs[service.__name__] = service.getName()
