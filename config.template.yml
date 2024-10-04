@@ -60,5 +60,5 @@ methods:
     title: PreserveTube
     enabled: true
 
-# uncomment below to set a user agent
-# user_agent: FindYoutubeVideo/1.0 operated by TheTechRobo
+# Global User-Agent
+# user_agent: "MyCustomUserAgent/1.0"
