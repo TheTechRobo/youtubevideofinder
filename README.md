@@ -25,6 +25,25 @@ docker run --restart=unless-stopped -p 8000:8000 -e GUNICORN_WORKERS=4 thetechro
 ### Running outside of Docker (unsupported)
 You should be able to check the Dockerfile for what it is doing during the build (it's a glorified shell script).
 
+## User-Agent Configuration
+
+You can set the `User-Agent` globally in your `config.yml` file:
+
+### Example `config.yml`
+
+```yaml
+version: 3
+
+# Global User-Agent
+user_agent: "FindYoutubeVideo/1.0 operated by TheTechRobo"
+
+methods:
+  youtube:
+    title: YouTube
+    enabled: true
+...
+```
+
 ## Licence
 
 Copyright (c) 2022-2024 TheTechRobo
