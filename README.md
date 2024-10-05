@@ -35,7 +35,7 @@ You can set the `User-Agent` globally in your `config.yml` file:
 version: 3
 
 # Global User-Agent
-user_agent: "MyCustomUserAgent/1.0"
+user_agent: "FindYoutubeVideo/1.0 operated by TheTechRobo"
 
 methods:
   youtube:
