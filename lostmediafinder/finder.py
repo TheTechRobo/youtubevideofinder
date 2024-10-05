@@ -422,12 +422,12 @@ class Playboard(YouTubeService):
     name = methods["playboard_co"]["title"]
     note = "The Playboard scraper is unreliable; please verify values yourself."
     configId = "playboard_co"
+    user_agent = methods["playboard_co"]["user_agent"]
 
     @classmethod
     async def _run(cls, id, session: aiohttp.ClientSession) -> typing.Self:
         note = cls.note
-        user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.%s.0.0 Safari/537.36"
-        user_agent = user_agent % random.randint(0, 100)
+        user_agent = cls.user_agent % random.randint(0, 100)
         url = f"https://playboard.co/en/video/{id}"
         async with session.get(url, headers={"User-Agent": user_agent}) as resp:
             code = resp.status
