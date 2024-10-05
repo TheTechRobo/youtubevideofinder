@@ -259,7 +259,6 @@ class HackintYa(YouTubeService):
             note=cls.note if archived else "", rawraw=rawraw, metaonly=False, classname=cls.__name__
         )
 
-FYT_UA = "FindYoutubeVideo/1.0 operated by TheTechRobo"
 
 class DistributedYoutubeArchive(YouTubeService):
     """
@@ -270,7 +269,6 @@ class DistributedYoutubeArchive(YouTubeService):
 
     @classmethod
     async def _run(cls, id, session: aiohttp.ClientSession):
-        user_agent = FYT_UA
         lastupdated = time.time()
         async with session.get(f"https://dya-t-api.strangled.net/api/video/{id}") as resp:
             status = resp.status
@@ -313,7 +311,6 @@ class Hobune(YouTubeService):
     async def _run(cls, id, session: aiohttp.ClientSession):
         while time.time() - cls.lastretrieved < cls.cooldown:
             await asyncio.sleep(0.1)
-        user_agent = "FindYoutubeVideo/1.0 operated by thetechrobo@thetechrobo.ca"
         urls_to_try = ("https://hobune.stream/videos/{}", "https://hobune.stream/tpa-h/videos/{}")
         raw = []
         archived = False
@@ -322,7 +319,7 @@ class Hobune(YouTubeService):
         cls.lastretrieved = lastupdated
         for url in urls_to_try:
             url = url.format(id)
-            async with session.head(url, headers={"User-Agent": user_agent}, timeout=5) as resp:
+            async with session.head(url, timeout=5) as resp:
                 code = resp.status
                 raw.append(code)
             if code == 200:
@@ -462,9 +459,8 @@ class AltCensored(YouTubeService):
 
     @classmethod
     async def _run(cls, id, session: aiohttp.ClientSession) -> typing.Self:
-        user_agent = FYT_UA
         url = f"https://altcensored.com/watch?v={id}"
-        async with session.get(url, headers={"User-Agent": user_agent}) as resp:
+        async with session.get(url) as resp:
             code = resp.status
         lastupdated = time.time()
         available = None
@@ -491,7 +487,6 @@ class Odysee(YouTubeService):
 
     @classmethod
     async def _run(cls, id, session: aiohttp.ClientSession):
-        user_agent = FYT_UA
         lastupdated = time.time()
         async with session.get(f"https://api.lbry.com/yt/resolve?video_ids={id}") as resp:
             status = resp.status
@@ -530,9 +525,13 @@ class PreserveTube(YouTubeService):
 
     @classmethod
     async def _run(cls, id, session: aiohttp.ClientSession) -> typing.Self:
-        user_agent = FYT_UA
         url = f"https://api.preservetube.com/video/{id}"
-        async with session.get(url, headers={"User-Agent": user_agent, "Accept": "application/json"}) as resp:
+
+        # keep any pre-existing headers but patch in "Accept"
+        headers = session.headers.copy()
+        headers.update({"Accept": "application/json"})
+
+        async with session.get(url, headers=headers) as resp:
             json = await resp.json()
         lastupdated = time.time()
         available = None

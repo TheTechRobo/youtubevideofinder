@@ -62,4 +62,4 @@ methods:
     enabled: true
 
 # Global User-Agent
-# user_agent: "MyCustomUserAgent/1.0"
+user_agent: "FindYoutubeVideo/1.0 operated by TheTechRobo"
