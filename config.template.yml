@@ -42,7 +42,7 @@ methods:
 
   playboard_co:
     title: Playboard.co
-    enabled: true
+    enabled: false
     user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.%s.0.0 Safari/537.36"
 
   removededm:
@@ -61,5 +61,9 @@ methods:
     title: PreserveTube
     enabled: true
 
+  nyaneonline:
+    title: Nyane.online
+    enabled: true
+
 # Global User-Agent
-user_agent: "FindYoutubeVideo/1.0 operated by TheTechRobo"
+user_agent: "FindYoutubeVideo/1.0 operated by XYZ"

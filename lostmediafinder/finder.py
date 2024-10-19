@@ -394,7 +394,7 @@ class Filmot(YouTubeService):
         while time.time() - cls.lastretrieved < cls.cooldown:
             await asyncio.sleep(0.1)
         lastupdated = time.time()
-        cls.lastretrieved = time.time()
+        cls.lastretrieved = int(time.time())
         async with session.get(f"https://filmot.com/api/getvideos?key={key}&id={id}&flags=1") as resp:
             metadata = await resp.json(content_type=None)
         rawraw = metadata
@@ -549,4 +549,31 @@ class PreserveTube(YouTubeService):
                 lastupdated=lastupdated, name=cls.getName(), note=cls.note,
                 rawraw=None, comments=False, available=available,
                 metaonly=False, classname=cls.__name__
+        )
+
+class NyaneOnline(YouTubeService):
+    name = methods['nyaneonline']['title']
+    note = ""
+    configId = "nyaneonline"
+
+    @classmethod
+    async def _run(cls, id, session: aiohttp.ClientSession) -> typing.Self:
+        url = f"https://www.nyane.online/video"
+
+        async with session.head(url, params={"id": id}) as resp:
+            lastupdated = time.time()
+            status = resp.status
+            if status == 200:
+                archived = True
+                available = str(resp.request_info.url)
+            elif status == 404:
+                archived = False
+                available = None
+            else:
+                raise AssertionError(f"bad status code {status}")
+
+        return cls(archived=archived, capcount=1 if archived else 0,
+                   lastupdated=lastupdated, name=cls.getName(), note=cls.note,
+                   rawraw=None, comments=False, available=available,
+                   metaonly=False, classname=cls.__name__
         )
