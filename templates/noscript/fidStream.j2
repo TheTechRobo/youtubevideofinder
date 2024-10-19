@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <link href="/static/normalize.css" rel="stylesheet" type="text/css" />
+    <link href="/static/skeleton.css" rel="stylesheet" type="text/css" />
+    <link href="/static/styles.css" rel="stylesheet" />
+
+<style>
+body {
+  font-family: Ubuntu, Arial, sans-serif;
+}
+span > a {
+  color: cyan;
+}
+span > a:visited {
+  color: pink;
+}
+</style>
+  </head>
+  <body>
+    <h2>Video ID: {{ resp.id }}</h1>
+    <ul>
+      {% for cls, clsn in promised_keys.items() %}
+        <div id="{{cls}}">
+          <li>{{ clsn }} :
+            <span id="loading-msg">
+              <img src="/static/loading.gif" width="25" height="25" /> Loading...
+            </span>
+            <span id="is-archived"></span>
+            <br>
+            <span id="note"></span>
+          </li>
+        </div>
+      {%endfor%}
+    </ul>
+  </body>
+<style>
+{% for res in stream %}
+{{res.classname}} > #is-archived::after {
+  background-color: black;
+  {% if res.archived %}
+    color: green;
+    {% set comments = "(incl. comments)" if res.comments else "" %}
+    {% set metaonly = "(metadata only)" if res.metaonly else "" %}
+    content: "Archived! {{metaonly}} {{comments}}";
+  {% elif res.error %}
+    color: white;
+    content: "Error";
+  {% else %}
+  {% endif %}
+}
+{% if res.note %}
+{{res.classname}} > #note::after {
+  content: "{{res.note}}";
+}
+{% endif %}
+{% endfor %}
+</style>
+</html>
