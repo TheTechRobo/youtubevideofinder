@@ -83,7 +83,11 @@ class Service(JSONDataclass):
             return res
         except Exception as ename: # pylint: disable=broad-except
             note = f"An error occured while retrieving data from {cls.getName()}."
-            rawraw = f"{type(ename)}: {repr(ename)}"
+            if "aiohttp" in str(type(ename)):
+                # Ugly temporary hack
+                rawraw = f"{type(ename)}"
+            else:
+                rawraw = f"{type(ename)}: {repr(ename)}"
             return cls(
                     archived=False, capcount=0, error=rawraw,
                     lastupdated=time.time(), name=cls.getName(), note=note,
