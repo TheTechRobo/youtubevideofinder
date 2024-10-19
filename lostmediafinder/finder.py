@@ -38,6 +38,7 @@ class YouTube(YouTubeService):
             metaonly=False, comments=False, classname=cls.__name__
         )
 
+
 class WaybackMachine(YouTubeService):
     """
     Queries the Wayback Machine for the video you requested.
@@ -46,33 +47,64 @@ class WaybackMachine(YouTubeService):
     configId = "ia_wayback"
 
     @classmethod
-    async def _run(cls, id, session: aiohttp.ClientSession) -> typing.Self:
+    async def _run(cls, id: str, session: aiohttp.ClientSession) -> typing.Self:
         ismeta = False
-        lien = f"https://web.archive.org/web/1oe_/http://wayback-fakeurl.archive.org/yt/{id}"
+        lien = f"https://web.archive.org/web/0id_/http://wayback-fakeurl.archive.org/yt/{id}"
+
         async with session.head(lien, allow_redirects=False, timeout=15) as response:
             redirect = response.headers.get("location")
-            archived = bool(redirect) # if there's a redirect, it's archived
+            archived = bool(redirect)  # Archived if there is a redirect
+
         response2 = None
+        url_formats = [
+            f"youtube.com/watch?v={id}",
+            f"youtube.com/embed/{id}",
+            f"youtube.com/shorts/{id}",
+            f"youtu.be/{id}"
+        ]
+
+        # CDX above Availability because currently, latter will return text/html MIME type,
+        # which causes the script to unalive itself, prematurely
         if not archived:
-            lien = None
-            check = f"https://youtube.com/watch?v={id}" # not exhaustive but...
-            params = {
-                "url": check,
-                "timestamp": 0
-            }
-            async with session.get(f"https://archive.org/wayback/available", params=params, timeout=8) as resp:
-                response2 = await resp.json()
-                if response2["archived_snapshots"]:
-                    archived = True
-                    ismeta = True
-                    lien = response2["archived_snapshots"]["closest"]["url"]
+            for check in url_formats:
+                params = {
+                    "url": check,
+                    "collapse": "urlkey",
+                    "filter": "statuscode:200",
+                    "output": "json"
+                }
+                try:
+                    async with session.get("https://web.archive.org/cdx/search/cdx", params=params, timeout=15) as cdx_resp:
+                        cdx_results = await cdx_resp.json()
+                        if cdx_results:
+                            lien = f"https://web.archive.org/web/{cdx_results[1][1]}/{cdx_results[1][2]}"
+                            archived = True
+                            ismeta = True
+                            break
+                except (aiohttp.ClientError, asyncio.TimeoutError):
+                    continue
+
+        if not archived:
+            for check in url_formats:
+                params = {
+                    "url": check,
+                    "timestamp": 0
+                }
+                async with session.get("https://archive.org/wayback/available", params=params, timeout=15) as resp:
+                    response2 = await resp.json()
+                    if response2.get("archived_snapshots"):
+                        archived = True
+                        ismeta = True
+                        lien = response2["archived_snapshots"]["closest"]["url"]
+                        break
 
         rawraw = (redirect, response2)
         return cls(
-                archived=archived, capcount=int(archived), rawraw=rawraw,
-                available=lien, lastupdated=time.time(), name=cls.getName(),
-                note="", metaonly=ismeta, comments=False, classname=cls.__name__
+            archived=archived, capcount=int(archived), rawraw=rawraw, available=lien,
+            lastupdated=time.time(), name=cls.getName(), note="", metaonly=ismeta,
+            comments=False, classname=cls.__name__
         )
+
 
 class ArchiveOrgDetails(YouTubeService):
     """
