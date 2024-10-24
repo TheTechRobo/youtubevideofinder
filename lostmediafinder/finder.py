@@ -6,6 +6,7 @@ import random, time, urllib.parse, aiohttp, asyncio
 import typing_extensions as typing
 from switch import Switch
 from .types import YouTubeService, methods
+from yarl import URL
 
 class YouTube(YouTubeService):
     """
@@ -54,6 +55,9 @@ class WaybackMachine(YouTubeService):
         async with session.head(lien, allow_redirects=False, timeout=15) as response:
             redirect = response.headers.get("location")
             archived = bool(redirect)  # Archived if there is a redirect
+            if redirect:
+                u = URL(redirect)
+                assert u.path != "/sry", "Redirected to sorry page. Is IA down?"
 
         response2 = None
         url_formats = [
