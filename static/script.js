@@ -9,7 +9,7 @@ function isValidVideoId(videoId) {
 function getVideoId(videoInput) {
     // Regexes here are based on the ones from https://github.com/mattwright324/youtube-metadata/blob/master/js/shared.js#L8-L14
     let patterns = [
-        /(?:https?:\/\/)?(?:\w+\.)?youtube\.com\/watch\/?\?v=([A-Za-z0-9_-]{10}[AEIMQUYcgkosw048])(?:[\/&].*)?/i,
+        /(?:https?:\/\/)?(?:\w+\.)?youtube\.com\/watch\/?\?(?:[^&#]+&)*v=([A-Za-z0-9_-]{10}[AEIMQUYcgkosw048])(?:[\/&].*)?(?:#.*)?/i,
         /(?:https?:\/\/)?(?:\w+\.)?youtube.com\/(?:v|embed|shorts|video)\/([A-Za-z0-9_-]{10}[AEIMQUYcgkosw048])(?:[\/&].*)?/i,
         /(?:https?:\/\/)?youtu.be\/([A-Za-z0-9_-]{10}[AEIMQUYcgkosw048])(?:\?.*)?/i,
         /(?:https?:\/\/)?filmot.com\/video\/([A-Za-z0-9_-]{10}[AEIMQUYcgkosw048])(?:\?.*)?/i,
