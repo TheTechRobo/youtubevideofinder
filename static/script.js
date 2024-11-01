@@ -106,9 +106,13 @@ function finish(vid1) {
                 return null;
             }
             if (response.status === 502) {
-                dataDiv.innerHTML = `<span style="color: red;">The server is currently down - please wait a minute and try again</spawn>`;
+                dataDiv.innerHTML = `<span style="color: red;">The server is currently down - please wait a minute and try again</span>`;
                 return null;
             }
+			if (response.status == 503) {
+				dataDiv.innerHTML = `<span style="color: red;">The YouTube Video finder is currently unavailable. Please check back later. More information might be available by refreshing the page.</span>`
+				return null;
+			}
             if (response.status !== 200) {
                 dataDiv.innerHTML = `<span style="color: red;">Received unknown status code ${response.status}</span>`;
                 return null;
