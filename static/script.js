@@ -68,12 +68,14 @@ function makeLoadingElement(title) {
     return li;
 }
 
-function finish(vid1) {
-    const dataDiv = getDataDiv()
-    const submitBtn = getSubmitBtn()
-    const videoInput = getVideoInput()
+let g_stream = null;
 
-    plausible('FormSubmit')
+function finish(vid1) {
+    const dataDiv = getDataDiv();
+    const submitBtn = getSubmitBtn();
+    const videoInput = getVideoInput();
+
+    plausible('FormSubmit');
     var vid = vid1;
     if (!isValidVideoId(vid)) {
         let newVid = getVideoId(vid);
@@ -101,7 +103,7 @@ function finish(vid1) {
                 dataDiv.innerHTML = `<span style="color: red;">Internal server error - this is not your fault, please try again</span>`;
                 return null;
             }
-                if (response.status === 429) {
+            if (response.status === 429) {
                 dataDiv.innerHTML = `<span style="color: red;">You have been rate limited - please slow down</span>`;
                 return null;
             }
@@ -123,6 +125,9 @@ function finish(vid1) {
             if (stream === null) {
                 return;
             }
+            g_stream = stream;
+            submitBtn.innerHTML = "Cancel";
+            submitBtn.disabled = false;
             const possible_states = Object.freeze({
                 Preparation: "Preparation",
                 Generation: "Generation",
@@ -198,6 +203,11 @@ function finish(vid1) {
             function pump() {
                 return stream.read().then(({ done, value }) => {
                     if (done) {
+                        Object.values(elements).forEach((i) => {
+                            if (i.getAttribute("data-status") == "loading") {
+                                i.querySelector(".result").innerHTML = `<span class="white">Error</span><br />Did not receive a result from the server.`
+                            }
+                        })
                         return;
                     }
                     let text = new TextDecoder().decode(value);
@@ -225,14 +235,21 @@ function finish(vid1) {
             throw (e);
         })
         .finally(() => {
+            g_stream = null;
             submitBtn.disabled = false;
             submitBtn.innerHTML = "Search for Captures";
         });
 }
 
 function finishWrpa(data) {
-    const dataDiv = getDataDiv()
-    const submitBtn = getSubmitBtn()
+    if (g_stream !== null) {
+        g_stream.cancel().then((_) => {});
+        g_stream = null;
+        return false;
+    }
+
+    const dataDiv = getDataDiv();
+    const submitBtn = getSubmitBtn();
 
     submitBtn.disabled = true;
     submitBtn.innerHTML = "Searching...";
