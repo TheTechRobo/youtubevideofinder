@@ -89,6 +89,7 @@ class WaybackMachine(YouTubeService):
                     continue
 
         if not archived:
+            lien = None
             for check in url_formats:
                 params = {
                     "url": check,
