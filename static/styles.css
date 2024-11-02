@@ -135,6 +135,10 @@ p {
     color: rgb(203 213 225);
   }
 
+  button:hover, button:focus {
+    color: #969696;
+  }
+
   #input-section {
     background-image: linear-gradient(#0e1323, #2e1323) !important;
   }
