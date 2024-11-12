@@ -275,8 +275,9 @@ class HackintYa(YouTubeService):
 
     @classmethod
     async def _run(cls, id, session: aiohttp.ClientSession):
-        username = methods[cls.configId]["username"]
-        password = methods[cls.configId]["password"]
+        username: str = methods[cls.configId]["username"]
+        password: str = methods[cls.configId]["password"]
+        excluded: list[str] = methods[cls.configId].get("excluded", [])
 
         vid = id
         auth = aiohttp.BasicAuth(username, password)
@@ -291,6 +292,11 @@ class HackintYa(YouTubeService):
         archived = (count > 0)
         comments = [i for i in commentcount.split("\n") if i.strip("∅\n") and i.strip() != "0"]
         rawraw = (count, commentcount)
+        if vid in excluded:
+            return cls(
+                archived=False, capcount=0, comments=False, lastupdated=time.time(), name=cls.getName(),
+                note="", rawraw=(0, ""), metaonly=False, classname=cls.__name__
+            )
         return cls(
             archived=archived, capcount=count, comments=(len(comments) > 0), lastupdated=time.time(), name=cls.getName(),
             note=cls.note if archived else "", rawraw=rawraw, metaonly=False, classname=cls.__name__
