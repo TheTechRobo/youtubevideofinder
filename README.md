@@ -1,5 +1,4 @@
 # lostmediafinder
-
 Currently YouTube is the only supported site, but that might change.
 
 Contributions are welcome!
@@ -25,14 +24,16 @@ docker run --restart=unless-stopped -p 8000:8000 -e GUNICORN_WORKERS=4 thetechro
 ### Running outside of Docker (unsupported)
 You should be able to check the Dockerfile for what it is doing during the build (it's a glorified shell script).
 
-## User-Agent Configuration
+## Configuration
 
-You can set the `User-Agent` globally in your `config.yml` file:
+`config.template.yml` has an example.
+
+First, set the `User-Agent` globally in your `config.yml` file. Note that it isn't currently used for all scrapers as some require mimicking a browser.
 
 ### Example `config.yml`
 
 ```yaml
-version: 3
+version:
 
 # Global User-Agent
 user_agent: "FindYoutubeVideo/1.0 operated by TheTechRobo"
