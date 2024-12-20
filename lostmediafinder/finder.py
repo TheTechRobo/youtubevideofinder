@@ -270,7 +270,9 @@ class HackintYa(YouTubeService):
     Queries #youtubearchive for the video you requested.
     """
     name = methods["hackint_ya"]["title"]
-    note = "Video retrieval is currently not available. Please check back later for access instructions."
+    note = ("Video retrieval is currently not available for technical reasons. "
+            "Check back later for access instructions. This may take weeks or months."
+            )
     configId = "hackint_ya"
 
     @classmethod
