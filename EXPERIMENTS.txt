@@ -1,0 +1,4 @@
+=== Current Experiments ===
+
+- Wayback Machine: Checks two supposedly equivalent API endpoints. If they don't match, send a report to my server. I have been made aware of a video that is not recognized on the fakeurl endpoint but is recognized on the videoinfo endpoint. Only the video ID is included in the report.
+

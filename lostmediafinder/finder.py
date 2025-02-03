@@ -5,8 +5,19 @@ All the Service implementations live here.
 import random, time, urllib.parse, aiohttp, asyncio
 import typing_extensions as typing
 from switch import Switch
-from .types import YouTubeService, methods
+from .types import YouTubeService, methods, experiment_base_url
 from yarl import URL
+
+async def submit_experiment(session: aiohttp.ClientSession, experiment_name: str, video_id: str):
+    if experiment_base_url:
+        report = {
+            "experiment": experiment_name,
+            "id": video_id,
+        }
+        try:
+            await session.post(experiment_base_url, json=report)
+        except Exception:
+            pass
 
 class YouTube(YouTubeService):
     """
@@ -58,6 +69,23 @@ class WaybackMachine(YouTubeService):
             if redirect:
                 u = URL(redirect)
                 assert u.path != "/sry", "Redirected to sorry page. Is IA down?"
+            fakeurl_archived = archived
+
+        params = {"vtype": "youtube", "vid": id}
+        async with session.get("https://web.archive.org/__wb/videoinfo", params=params, timeout=5) as response:
+            viresp = await response.json()
+            videoinfo_archived = bool(viresp.get("formats"))
+            if videoinfo_archived:
+                archived = True
+        if fakeurl_archived != videoinfo_archived:
+            await submit_experiment(session, "wb-index-weirdness", id)
+            if videoinfo_archived:
+                # TODO: better sorting system; right now while this is
+                # an edge case I'm not going to bother, but if it ever is the default
+                # this should be improved
+                format = viresp['formats'][0]
+                url, ts = format['url'], format['timestamp']
+                lien = f"https://web.archive.org/web/{ts}/{url}"
 
         response2 = None
         url_formats = [
@@ -103,7 +131,7 @@ class WaybackMachine(YouTubeService):
                         lien = response2["archived_snapshots"]["closest"]["url"]
                         break
 
-        rawraw = (redirect, response2)
+        rawraw = (redirect, viresp, response2)
         return cls(
             archived=archived, capcount=int(archived), rawraw=rawraw, available=lien,
             lastupdated=time.time(), name=cls.getName(), note="", metaonly=ismeta,

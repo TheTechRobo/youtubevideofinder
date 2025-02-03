@@ -67,3 +67,14 @@ methods:
 
 # Global User-Agent
 user_agent: "FindYoutubeVideo/1.0 operated by XYZ"
+
+# Sets the experiment base URL. *If you want to disable experiments, set this to null.*
+# Occasionally, there might be something I want to test; for example, looking for
+# edge cases in an API endpoint.
+# If experiments are on, the site will send the results of these experiments to my server.
+# The following information will be included in the report:
+# - video ID
+# - any necessary additional information
+# Your IP address WILL NOT be associated with the report.
+# Current list of experiments is in EXPERIMENTS.txt.
+experiment_base_url: "https://fyt-helper.thetechrobo.ca/experiment"

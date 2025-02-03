@@ -19,6 +19,9 @@ with open('config.yml', 'r') as file:
     config_yml = yaml.safe_load(file)
     methods = config_yml["methods"]
     user_agent = config_yml.get("user_agent") # defaults to None if not set
+    experiment_base_url = config_yml.get("experiment_base_url")
+    if experiment_base_url:
+        experiment_base_url = experiment_base_url.rstrip("/")
 
 @dataclasses.dataclass
 class Service(JSONDataclass):
@@ -33,7 +36,7 @@ class Service(JSONDataclass):
         lastupdated (int): The timestamp the data was retrieved from the server. Used internally to expire cache entries.
         name (str): The name of the service. Used in the UI.
         note (str): A footnote about the service. This could be different depending on conditions. For example, the Internet Archive has an extra passage if the item is dark. Used in the UI.
-        rawraw (Any): The data used to check whether the video is archived on that particular service. For example, for GhostArchive, it would be the HTTP status code.
+        rawraw (Any): The data used to check whether the video is archived on that particular service. For example, for GhostArchive, it would be the HTTP status code. The structure could change at any time.
         metaonly (bool): True if only the metadata is archived. This value should not be relied on!
         comments (bool): True if the comments are archived. This value should not be relied on!
         maybe_paywalled (bool): True if the service might require payment.
