@@ -8,9 +8,9 @@ from switch import Switch
 from .types import YouTubeService, methods, experiment_base_url
 from yarl import URL
 
-async def submit_experiment(session: aiohttp.ClientSession, experiment_name: str, video_id: str):
+async def submit_experiment(session: aiohttp.ClientSession, experiment_name: str, video_id: str, **report):
     if experiment_base_url:
-        report = {
+        report |= {
             "experiment": experiment_name,
             "id": video_id,
         }
@@ -78,7 +78,7 @@ class WaybackMachine(YouTubeService):
             if videoinfo_archived:
                 archived = True
         if fakeurl_archived != videoinfo_archived:
-            await submit_experiment(session, "wb-index-weirdness", id)
+            await submit_experiment(session, "wb-index-weirdness", id, fakeurl=fakeurl_archived, videoinfo=videoinfo_archived)
             if videoinfo_archived:
                 # TODO: better sorting system; right now while this is
                 # an edge case I'm not going to bother, but if it ever is the default
