@@ -1,8 +1,12 @@
-from quart import Quart, jsonify, render_template, request, Response, redirect, send_from_directory, jsonify
-import re, yaml, json, typing
+from quart import Quart, render_template, request, Response, redirect, send_from_directory, url_for
+import re, yaml, json
 import lostmediafinder
 
-app = Quart(__name__)
+class EscapingQuart(Quart):
+    def select_jinja_autoescape(self, filename: str) -> bool:
+        return filename.endswith(".j2") or super().select_jinja_autoescape(filename)
+
+app = EscapingQuart(__name__)
 
 with open('config.yml', 'r') as file:
     config_yml = yaml.safe_load(file)
@@ -132,7 +136,19 @@ async def index():
     """
     default = request.args.get("q") or ""
     default_id = coerce_to_id(default) or ""
-    return await render_template("index.j2", default=default, default_id=default_id, methods=get_enabled_methods())
+    if default and default_id and default != default_id:
+        return redirect(url_for("index", q=default_id))
+    absolute_url = url_for(
+        "index",
+        _external=True
+    ) + "?q=https://youtube.com/watch?v=dQw4w9WgXcQ"
+    return await render_template(
+        "index.j2",
+        default=default,
+        default_id=default_id,
+        methods=get_enabled_methods(),
+        absolute_url=absolute_url
+    )
 
 # The following code should be taken out and shot
 def parse_changelog(changelog):

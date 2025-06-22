@@ -3,17 +3,17 @@ const getVideoInput = () => document.getElementById("videoInput");
 const getSubmitBtn = () => document.getElementById("submit");
 
 function isValidVideoId(videoId) {
-    return videoId.match(/^[A-Za-z0-9_-]{10}[AEIMQUYcgkosw048]$/)
+    return videoId.match(/^[A-Za-z0-9_-]{10}[AEIMQUYcgkosw048]$/);
 }
 
 function getVideoId(videoInput) {
     // Regexes here are based on the ones from https://github.com/mattwright324/youtube-metadata/blob/master/js/shared.js#L8-L14
-    let patterns = [
+    const patterns = [
         /(?:https?:\/\/)?(?:\w+\.)?youtube\.com\/watch\/?\?(?:[^&#]+&)*v=([A-Za-z0-9_-]{10}[AEIMQUYcgkosw048])(?:[\/&].*)?(?:#.*)?/i,
         /(?:https?:\/\/)?(?:\w+\.)?youtube.com\/(?:v|embed|shorts|video)\/([A-Za-z0-9_-]{10}[AEIMQUYcgkosw048])(?:[\/&].*)?/i,
         /(?:https?:\/\/)?youtu.be\/([A-Za-z0-9_-]{10}[AEIMQUYcgkosw048])(?:\?.*)?/i,
         /(?:https?:\/\/)?filmot.com\/video\/([A-Za-z0-9_-]{10}[AEIMQUYcgkosw048])(?:\?.*)?/i,
-    ]
+    ];
     for (i = 0; i < patterns.length; i++) {
         let pattern = patterns[i];
         let newVid = videoInput.replace(pattern, function (match, newVid) {
@@ -47,8 +47,8 @@ function makeServiceEntry(result) {
     let archived = `<span class='${colour}'>${isarchived}</span>`;
     let metaonly = (result.metaonly && result.archived) ? " (metadata only) " : " ";
     let comments = (result.archived && result.comments) ? " (incl. comments) " : " ";
-    let lien = result.available ? `<a href="${result.available}">(link)</a>` : ""
-    return `${archived}${metaonly}${comments}${lien}<br />${result.note}`
+    let lien = result.available ? `<a href="${result.available}">(link)</a>` : "";
+    return `${archived}${metaonly}${comments}${lien}<br />${result.note}`;
 }
 
 // https://stackoverflow.com/a/48054293/9654083
@@ -81,7 +81,7 @@ function finish(vid1) {
         let newVid = getVideoId(vid);
         console.log(newVid);
         if (!newVid) {
-            dataDiv.innerHTML = `<span style="color:red;">That doesn't look like a valid video ID.<br />If it is valid, please report the bug on github!</span>`;
+            dataDiv.innerHTML = `<span style="color:red;">That doesn't look like a valid video ID.<br />If it is valid, please report the bug on GitHub!</span>`;
             submitBtn.disabled = false;
             submitBtn.innerHTML = "Search for Captures";
             return false;
@@ -96,27 +96,27 @@ function finish(vid1) {
     fetch(`api/v4/youtube/${vid}?stream`)
         .then((response) => {
             if (response.status === 410 || response.status === 404) {
-                dataDiv.innerHTML = `<span style="color: red;">API version is not supported - this should never happen, please report this</span>`;
+                dataDiv.innerHTML = `<span style="color: red;">API version is not supported - this should never happen, please report this!</span>`;
                 return null;
             }
             if (response.status === 500) {
-                dataDiv.innerHTML = `<span style="color: red;">Internal server error - this is not your fault, please try again</span>`;
+                dataDiv.innerHTML = `<span style="color: red;">Internal server error - this is not your fault, please try again.</span>`;
                 return null;
             }
             if (response.status === 429) {
-                dataDiv.innerHTML = `<span style="color: red;">You have been rate limited - please slow down</span>`;
+                dataDiv.innerHTML = `<span style="color: red;">You have been rate limited - please slow down.</span>`;
                 return null;
             }
             if (response.status === 502) {
-                dataDiv.innerHTML = `<span style="color: red;">The server is currently down - please wait a minute and try again</span>`;
+                dataDiv.innerHTML = `<span style="color: red;">The server is currently down - please wait a minute and try again.</span>`;
                 return null;
             }
-			if (response.status == 503) {
-				dataDiv.innerHTML = `<span style="color: red;">The YouTube Video finder is currently unavailable. Please check back later. More information might be available by refreshing the page.</span>`
-				return null;
-			}
+            if (response.status == 503) {
+                dataDiv.innerHTML = `<span style="color: red;">The YouTube Video Finder is currently unavailable. Please check back later. More information might be available by refreshing the page.</span>`;
+                return null;
+            }
             if (response.status !== 200) {
-                dataDiv.innerHTML = `<span style="color: red;">Received unknown status code ${response.status}</span>`;
+                dataDiv.innerHTML = `<span style="color: red;">Received unknown status code ${response.status}</span>.`;
                 return null;
             }
             return response.body.getReader();
@@ -196,7 +196,7 @@ function finish(vid1) {
                         return;
                     }
                     default: {
-                        throw new Error("unexpected state")
+                        throw new Error("unexpected state");
                     }
                 }
             }
@@ -205,14 +205,14 @@ function finish(vid1) {
                     if (done) {
                         Object.values(elements).forEach((i) => {
                             if (i.getAttribute("data-status") == "loading") {
-                                i.querySelector(".result").innerHTML = `<span class="white">Error</span><br />Did not receive a result from the server.`
+                                i.querySelector(".result").innerHTML = `<span class="white">Error</span><br />Did not receive a result from the server.`;
                             }
-                        })
+                        });
                         return;
                     }
                     let text = new TextDecoder().decode(value);
                     for (const c of text) {
-                        currentline += c
+                        currentline += c;
                         if (c === "\n") {
                             processLine(currentline);
                             currentline = "";
@@ -256,7 +256,7 @@ function finishWrpa(data) {
     try {
         return finish(data);
     } catch (err) {
-        console.error(err)
+        console.error(err);
         dataDiv.innerHTML = "<span class='red'>An unknown error occured. Please report this. If possible, provide console output and a way of reproducing.</span>";
     }
 }
