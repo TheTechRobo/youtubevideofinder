@@ -43,7 +43,7 @@ async def youtube(v, id, site="youtube", jsn=True):
     includeRaw = True
     if v == 1:
         return "This API version is no longer supported.", 410
-    if v not in (2, 3, 4):
+    if v not in (2, 3, 4, 5):
         return "Unrecognised API version", 404
     if site == "youtube":
         includeRaw = True
@@ -197,16 +197,9 @@ async def api():
     """
     responseDocstring = lostmediafinder.YouTubeResponse.__doc__
     serviceDocstring = lostmediafinder.Service.__doc__
-    changelog = [{}, {}]
-    rChangelog = responseDocstring.split("=Changelog=")
-    sChangelog = serviceDocstring.split("=Changelog=")
-    responseDocstring = rChangelog[0]
-    serviceDocstring = sChangelog[0]
-    if len(rChangelog) > 1:
-        changelog[0] = parse_changelog(rChangelog[1].strip())
-    if len(sChangelog) > 1:
-        changelog[1] = parse_changelog(sChangelog[1].strip())
+    linkDocstring = lostmediafinder.Link.__doc__
     # Parse the attributes list
-    responseDocstring = await parse_lines(rChangelog[0].split("Attributes:\n")[1].strip().split("\n"))
-    serviceDocstring  = await parse_lines(sChangelog[0].split("Attributes:\n")[1].strip().split("\n"))
-    return await render_template("api.j2", fields=responseDocstring, services=serviceDocstring, changelog=changelog)
+    responseDocstring = await parse_lines(responseDocstring.split("Attributes:\n")[1].strip().split("\n"))
+    serviceDocstring  = await parse_lines(serviceDocstring.split("Attributes:\n")[1].strip().split("\n"))
+    linkDocstring = await parse_lines(linkDocstring.split("Attributes:\n")[1].strip().split("\n"))
+    return await render_template("api.j2", fields=responseDocstring, services=serviceDocstring, links=linkDocstring)

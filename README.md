@@ -45,9 +45,15 @@ methods:
 ...
 ```
 
+## Contributing
+
+If creating a new scraper, just make a new class in the finder.py file, and update the example config file.
+
+Scrapers should try to yield the best or near-best link first, for best compatibility with APIv4 and lower.
+
 ## Licence
 
-Copyright (c) 2022-2024 TheTechRobo
+Copyright (c) 2022-2025 TheTechRobo
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

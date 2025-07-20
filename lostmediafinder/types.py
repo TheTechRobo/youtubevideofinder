@@ -30,41 +30,44 @@ class Service(JSONDataclass):
 
     Attributes:
         archived (bool): Whether the video is archived or not.
-        available (Optional[str]): A link to the archived material if it can be produced; null otherwise.
-        capcount (int): The number of captures. Currently deprecated - the capture count sent may or may not be the true number of captures. However, it will always be a positive non-zero number if the video is archived.
+        available (list[Link]): Links to the archived material.
         error (Optional[str]): An error message if an error was encountered; otherwise, null.
         lastupdated (int): The timestamp the data was retrieved from the server. Used internally to expire cache entries.
         name (str): The name of the service. Used in the UI.
         note (str): A footnote about the service. This could be different depending on conditions. For example, the Internet Archive has an extra passage if the item is dark. Used in the UI.
         rawraw (Any): The data used to check whether the video is archived on that particular service. For example, for GhostArchive, it would be the HTTP status code. The structure could change at any time.
         metaonly (bool): True if only the metadata is archived. This value should not be relied on!
-        comments (bool): True if the comments are archived. This value should not be relied on!
+        comments (bool): True if the comments are archived. The meaning of False is undefined.
         maybe_paywalled (bool): True if the service might require payment.
         classname (str): The internal class name, useful for streaming mode.
     """
     archived: bool
-    capcount: int
     lastupdated: float
     name: str
     note: str
     rawraw: typing.Any
     metaonly: bool
-    comments: bool
     classname: str
 
-    available: typing.Optional[str] = None
+    available: list["Link"] = dataclasses.field(default_factory=list)
     suppl: str = ""
     error: typing.Optional[typing.Any] = None
     maybe_paywalled: bool = False
 
     configId = None
+    type: str = "service"
+    comments: bool = False
+
+    def __post_init__(self):
+        if not self.comments:
+            self.comments = any(map(lambda s : s.contains.comments, self.available))
 
     @classmethod
-    async def _run(cls, id, session: aiohttp.ClientSession) -> typing.Self:
+    async def _run(cls, id, session: aiohttp.ClientSession) -> typing.AsyncGenerator:
         raise NotImplementedError("Subclass Service and impl the _run function")
+        yield 0 # exists for type checkers
 
     @classmethod
-    @property
     def enabled(cls):
         configId = cls.configId
         serviceConfig = methods[configId]
@@ -79,11 +82,16 @@ class Service(JSONDataclass):
             id (str): The video ID.
             includeRaw (bool): Whether or not to include the raw data as sent from the service. If you don't need this data, turn this off; it's only the default for compatibility.
         """
+        links = []
         try:
-            res = await cls._run(id, session, **kwargs)
-            if not includeRaw:
-                res.rawraw = None
-            return res
+            async for i in cls._run(id, session, **kwargs):
+                if isinstance(i, Link):
+                    links.append(i)
+                else:
+                    if not includeRaw:
+                        i.rawraw = None
+                    i.available = links
+                yield i
         except Exception as ename: # pylint: disable=broad-except
             note = f"An error occured while retrieving data from {cls.getName()}."
             if "aiohttp" in str(type(ename)):
@@ -91,11 +99,11 @@ class Service(JSONDataclass):
                 rawraw = f"{type(ename)}"
             else:
                 rawraw = f"{type(ename)}: {repr(ename)}"
-            return cls(
-                    archived=False, capcount=0, error=rawraw,
+            yield cls(
+                    archived=any(map(lambda l : l.contains.comments, links)), error=rawraw,
                     lastupdated=time.time(), name=cls.getName(), note=note,
-                    rawraw=None, metaonly=False, comments=False,
-                    available=None, classname=cls.__name__
+                    rawraw=None, metaonly=False,
+                    available=links, classname=cls.__name__
             )
 
     @classmethod
@@ -117,6 +125,18 @@ class Service(JSONDataclass):
             string += f"\t{self.error}\n"
         return string + "\n"
 
+    def _5to4(self):
+        service = copy.deepcopy(self)
+        service.capcount = 1 if service.archived else 0
+        if service.available:
+            contains = service.available[0].contains
+            service.metaonly = not contains.video
+            service.comments = contains.comments
+            service.available = service.available[0].url
+        else:
+            service.available = None
+        return service
+
 class YouTubeService(Service): # pylint: disable=abstract-method
     pass
 
@@ -136,7 +156,7 @@ class TargetAPIVersionTooHighError(ValueError):
     pass
 
 # The current API version.
-API_VERSION = 4
+API_VERSION = 5
 
 # Thin wrapper around a generator that allows us to define a `coerce_to_api_version` method,
 # just like with the non-streaming response type.
@@ -162,6 +182,11 @@ class YouTubeStreamResponse:
     async def __anext__(self):
         return await anext(self.gen)
 
+    def _convert_service_v5_to_v4(self, service):
+        if isinstance(service, Service):
+            return service._5to4()
+        return service
+
     async def coerce_to_api_version(self, targetVersion):
         """
         Wraps the iterator, converting all messages to the target API version.
@@ -172,14 +197,15 @@ class YouTubeStreamResponse:
         """
         if targetVersion > self.api_version:
             raise TargetAPIVersionTooHighError(targetVersion)
+        identity = lambda i : i
         # The function calls a direct current to target rather than current to current-1
         # because otherwise we can't be 100% sure that we can downgrade to the correct API version
         # and we can't "un-get" the item from the generator.
         if targetVersion != self.api_version:
-            arrOfNamesFunction = getattr(self, f"_convert_narr_v{self.api_version}_to_v{targetVersion}", None)
-            serviceObjectFunction = getattr(self, f"_convert_service_v{self.api_version}_to_v{targetVersion}", None)
-            verdictObjectFunction = getattr(self, f"_convert_verdict_v{self.api_version}_to_v{targetVersion}", None)
-            if not arrOfNamesFunction or not serviceObjectFunction or not verdictObjectFunction:
+            arrOfNamesFunction = getattr(self, f"_convert_narr_v{self.api_version}_to_v{targetVersion}", identity)
+            serviceObjectFunction = getattr(self, f"_convert_service_v{self.api_version}_to_v{targetVersion}", identity)
+            verdictObjectFunction = getattr(self, f"_convert_verdict_v{self.api_version}_to_v{targetVersion}", identity)
+            if arrOfNamesFunction is identity and serviceObjectFunction is identity and verdictObjectFunction is identity:
                 raise TargetAPIVersionTooLowError(targetVersion)
         else:
             # same as API version: do dumb wrappers
@@ -189,10 +215,40 @@ class YouTubeStreamResponse:
         arrayOfNames = await anext(self.gen)
         yield arrOfNamesFunction(arrayOfNames)
         async for item in self.gen:
+            if targetVersion == 4 and isinstance(item, Link):
+                continue
             yield serviceObjectFunction(item)
             if item is None:
                 break
         yield verdictObjectFunction(await anext(self.gen))
+
+
+@dataclasses.dataclass
+class LinkContains(JSONDataclass):
+    video: bool = False
+    metadata: bool = False
+    comments: bool = False
+    thumbnail: bool = False
+    captions: bool = False
+
+
+@dataclasses.dataclass
+class Link(JSONDataclass):
+    """
+    A link. Returned in the available field on API v5 and up.
+
+    Attributes:
+        url (str): The URL.
+        contains (LinkContains): What type of content the resource could contain. (Best effort.)
+        title (str): The title (human-readable) of resource.
+        note (Optional[str]): Any note about that particular resource.
+    """
+    url: str
+    contains: LinkContains
+    title: str
+
+    note: typing.Optional[str] = None
+    type: str = "link"
 
 
 @dataclasses.dataclass
@@ -203,7 +259,7 @@ class YouTubeResponse(JSONDataclass):
     Attributes:
         id (str): The interpreted video ID.
         status (str): bad.id if invalid ID.
-        keys (list[YouTubeService]): An array with all the server responses. THIS IS DIFFERENT THAN BEFORE! Before, this would be an array of strings. You'd use the strings as keys. Now, this array has the data directly!
+        keys (list[YouTubeService]): An array with all the server responses.
         api_version (int): The API version. Breaking API changes are made by incrementing this.
         verdict (dict): The verdict of the response. Has video, metaonly, and comments field, that are set to true if any archive was found where that was saved. Also has human_friendly field that has a simple verdict that can be used by people.
     """
@@ -235,6 +291,14 @@ class YouTubeResponse(JSONDataclass):
         assert self.api_version == targetVersion
         return self
 
+    def _convert_v5_to_v4(selfNEW): # pylint: disable=no-self-argument
+        self = copy.deepcopy(selfNEW)
+        assert self.api_version == 5
+        self.api_version = 4
+        for i, service in enumerate(self.keys):
+            self.keys[i] = service._5to4()
+        return self
+
     # There were no changes to the data structure between v3 and v4
     def _convert_v4_to_v3(selfNEW): # pylint: disable=no-self-argument
         self = copy.deepcopy(selfNEW)
@@ -260,7 +324,7 @@ class YouTubeResponse(JSONDataclass):
         potentialServices = YouTubeService.__subclasses__()
         services = []
         for potentialService in potentialServices:
-            if not potentialService.enabled:
+            if not potentialService.enabled():
                 continue
             services.append(potentialService)
         return services
@@ -303,18 +367,46 @@ class YouTubeResponse(JSONDataclass):
         services = cls._get_services()
         coroutines = []
         headers = {}
+        queue = asyncio.Queue(1)
         if user_agent:
             headers["User-Agent"] = user_agent
+        done = asyncio.Event()
+
+        async def iterate(gen):
+            nonlocal taskCount
+            try:
+                async for i in gen:
+                    await queue.put(i)
+            finally:
+                taskCount -= 1
+                if taskCount <= 0:
+                    done.set()
+
         async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=20), headers=headers) as session:
             svcs = {}
             for service in services:
                 svcs[service.__name__] = service.getName()
                 coroutines.append(service.run(id, session, includeRaw=includeRaw))
+            taskCount = len(svcs)
+            coroutines = [asyncio.create_task(iterate(coro)) for coro in coroutines]
             yield svcs
-            for result in asyncio.as_completed(coroutines):
-                retval = await result
-                yield retval
-                keys.append(retval)
+
+            while not done.is_set() or not queue.empty():
+                done_task = asyncio.create_task(done.wait())
+                queue_task = asyncio.create_task(queue.get())
+                tasks = {done_task, queue_task}
+                done_tasks, tasks = await asyncio.wait(tasks, return_when = asyncio.FIRST_COMPLETED)
+                if queue_task in done_tasks:
+                    retval = await queue_task
+                    yield retval
+                    if isinstance(retval, Service):
+                        keys.append(retval)
+                else:
+                    queue_task.cancel()
+                done_task.cancel()
+
+            done, pending = await asyncio.wait(coroutines, timeout = 0)
+            assert not pending
         yield None
         any_comments_archived = any(map(lambda e : e.comments, keys))
         any_metaonly_archived = any(map(lambda e : e.metaonly and e.archived, keys))
@@ -336,6 +428,8 @@ class YouTubeResponse(JSONDataclass):
         await anext(generator)
         results = []
         async for result in generator:
+            if isinstance(result, Link):
+                continue
             if result is None:
                 # loop is over
                 break
