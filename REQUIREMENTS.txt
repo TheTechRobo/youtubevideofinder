@@ -2,7 +2,6 @@ snscrape==0.4.3.20220106
 quart
 aiohttp[speedups]
 requests
-switch
 cachetools
 click
 asyncache
