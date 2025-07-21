@@ -26,8 +26,71 @@ function getVideoId(videoInput) {
     return false;
 }
 
+function makeLinkElement(link) {
+    let url = link.url;
+    let contains = link.contains;
+    let title = link.title;
+    let note = link.note;
+
+    let elem = document.createElement("li");
+    let span = document.createElement("span");
+    let span2 = document.createElement("span");
+    let abbr = document.createElement("abbr");
+    let a = document.createElement("a");
+    span.appendChild(abbr);
+    span.appendChild(span2);
+    elem.appendChild(span);
+    elem.appendChild(a);
+
+    const possible_contains = ["video", "metadata", "comments", "thumbnail", "captions"];
+    let actual_contains = [];
+    possible_contains.forEach((i) => {
+        if (contains[i]) actual_contains.push(i);
+    });
+    let contains_str;
+    if (actual_contains.length == 1) {
+        contains_str = "Contains " + actual_contains[0];
+    } else {
+        let last = actual_contains.pop();
+        contains_str = "May contain " + actual_contains.join(", ") + ", and " + last;
+    }
+    abbr.title = contains_str;
+
+    let br = title.indexOf(" (");
+    if (br == -1) br = title.length;
+    abbr.innerText = title.substring(0, br);
+    span2.innerText = title.substring(br) + ": ";
+
+    a.href = url;
+    if (url.length > 50) url = url.substring(0, 50) + "…";
+    a.innerText = url;
+
+    if (note !== null && note !== "") {
+        elem.appendChild(document.createElement("br"));
+        let ne = document.createElement("p");
+        ne.innerText = note;
+        elem.appendChild(ne);
+    }
+
+    return elem;
+}
+
+function makeLoadingElement(title) {
+    const li = document.createElement("li");
+    // I suppose we could put the list of links inline like how we used to do it with the single link.
+    // But that wouldn't allow for adding a note underneath, and I kind of like having the actual URL shown.
+    // Perhaps a "compact mode" should be added?
+    li.innerHTML = `
+        <b>${escapeHTML(title)}</b>:
+        <span class="result"><img src="/static/loading.gif" style="height: 1em;" /> Loading...</span>
+        <ul class="links"></ul>
+    `;
+    li.setAttribute("data-status", "loading");
+    return li;
+}
+
 function makeServiceEntry(result) {
-    var colour;
+    let colour;
     if (result.error) {
         colour = "white";
     } else if (result.archived && result.metaonly) {
@@ -38,7 +101,7 @@ function makeServiceEntry(result) {
         colour = "red";
     }
 
-    var isarchived = result.archived ? "Available" : "Not Available";
+    let isarchived = result.archived ? "Available" : "Not Available";
     if (result.error !== null) {
         isarchived = "Unknown";
         result.note = result.note + result.error;
@@ -46,9 +109,8 @@ function makeServiceEntry(result) {
 
     let archived = `<span class='${colour}'>${isarchived}</span>`;
     let metaonly = (result.metaonly && result.archived) ? " (metadata only) " : " ";
-    let comments = (result.archived && result.comments) ? " (incl. comments) " : " ";
-    let lien = result.available ? `<a href="${result.available}">(link)</a>` : "";
-    return `${archived}${metaonly}${comments}${lien}<br />${result.note}`;
+    let comments = (result.archived && result.comments) ? " (may include comments) " : " ";
+    return `${archived}${metaonly}${comments}<br />${result.note}`;
 }
 
 // https://stackoverflow.com/a/48054293/9654083
@@ -56,16 +118,6 @@ function escapeHTML(unsafeText) {
     let div = document.createElement('div');
     div.innerText = unsafeText;
     return div.innerHTML;
-}
-
-function makeLoadingElement(title) {
-    const li = document.createElement("li");
-    li.innerHTML = `
-        <b>${escapeHTML(title)}</b>:
-        <span class="result"><img src="/static/loading.gif" style="height: 1em;" /> Loading...</span>
-    `;
-    li.setAttribute("data-status", "loading");
-    return li;
 }
 
 let g_stream = null;
@@ -93,7 +145,7 @@ function finish(vid1) {
 
     // https://www.behance.net/gallery/31234507/Open-source-Loading-GIF-Icons-Vol-1
     dataDiv.innerHTML += `<div style="display: flex; gap: 12px;"><img src="/static/loading.gif" width="25" height="25" /> Loading could take up to 30 seconds.</div>`;
-    fetch(`api/v4/youtube/${vid}?stream`)
+    fetch(`api/v5/youtube/${vid}?stream`)
         .then((response) => {
             if (response.status === 410 || response.status === 404) {
                 dataDiv.innerHTML = `<span style="color: red;">API version is not supported - this should never happen, please report this!</span>`;
@@ -162,25 +214,29 @@ function finish(vid1) {
                             return;
                         }
                         const cln = data.classname;
-                        if (!data.archived) {
-                            numArchived--;
-                            if (data.error === null) {
-                                elements[cln].parentElement.removeChild(elements[cln]);
-                                if (dd === null) {
-                                    dd = document.createElement("details");
-                                    let summary = document.createElement("summary");
-                                    let ul = document.createElement("ul");
-                                    dd.id = "not-archived";
-                                    summary.innerHTML = "Not Archived";
-                                    dd.appendChild(summary);
-                                    dd.appendChild(ul);
-                                    dataDiv.appendChild(dd);
+                        if (data.type === "service") {
+                            if (!data.archived) {
+                                numArchived--;
+                                if (data.error === null) {
+                                    elements[cln].parentElement.removeChild(elements[cln]);
+                                    if (dd === null) {
+                                        dd = document.createElement("details");
+                                        let summary = document.createElement("summary");
+                                        let ul = document.createElement("ul");
+                                        dd.id = "not-archived";
+                                        summary.innerHTML = "Not Archived";
+                                        dd.appendChild(summary);
+                                        dd.appendChild(ul);
+                                        dataDiv.appendChild(dd);
+                                    }
+                                    dd.querySelector("ul").appendChild(elements[cln]);
                                 }
-                                dd.querySelector("ul").appendChild(elements[cln]);
                             }
+                            elements[cln].querySelector(".result").innerHTML = makeServiceEntry(data);
+                            elements[cln].setAttribute("data-status", "done");
+                        } else if (data.type === "link") {
+                            elements[cln].querySelector(".links").appendChild(makeLinkElement(data));
                         }
-                        elements[cln].querySelector(".result").innerHTML = makeServiceEntry(data);
-                        elements[cln].setAttribute("data-status", "done");
                         break;
                     }
                     case possible_states.Verdict: {
@@ -231,7 +287,7 @@ function finish(vid1) {
             return pump();
         })
         .catch((e) => {
-            dataDiv.innerHTML = '<span class="red" style="background-color: #fff;">An error occurred, check your internet connection</span>';
+            dataDiv.innerHTML = '<span class="red" style="background-color: #fff;">An error occurred. Please check your internet connection.</span>';
             throw (e);
         })
         .finally(() => {

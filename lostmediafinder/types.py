@@ -91,6 +91,7 @@ class Service(JSONDataclass):
                     if not includeRaw:
                         i.rawraw = None
                     i.available = links
+                    i.__post_init__()
                 yield i
         except Exception as ename: # pylint: disable=broad-except
             note = f"An error occured while retrieving data from {cls.getName()}."
@@ -249,6 +250,7 @@ class Link(JSONDataclass):
 
     note: typing.Optional[str] = None
     type: str = "link"
+    classname: str = dataclasses.field(init = False)
 
 
 @dataclasses.dataclass
@@ -372,10 +374,12 @@ class YouTubeResponse(JSONDataclass):
             headers["User-Agent"] = user_agent
         done = asyncio.Event()
 
-        async def iterate(gen):
+        async def iterate(name, gen):
             nonlocal taskCount
             try:
                 async for i in gen:
+                    if isinstance(i, Link):
+                        i.classname = name
                     await queue.put(i)
             finally:
                 taskCount -= 1
@@ -386,9 +390,9 @@ class YouTubeResponse(JSONDataclass):
             svcs = {}
             for service in services:
                 svcs[service.__name__] = service.getName()
-                coroutines.append(service.run(id, session, includeRaw=includeRaw))
+                coroutines.append((service.__name__, service.run(id, session, includeRaw=includeRaw)))
             taskCount = len(svcs)
-            coroutines = [asyncio.create_task(iterate(coro)) for coro in coroutines]
+            coroutines = [asyncio.create_task(iterate(name, coro)) for name, coro in coroutines]
             yield svcs
 
             while not done.is_set() or not queue.empty():

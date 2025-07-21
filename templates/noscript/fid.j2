@@ -25,27 +25,59 @@ span > a:visited {
     <h3>Results of id {{ resp.id }}</h3>
     {% if resp['status'] != "ok" %}
       <p>STATUS FAILED. {{resp['status']}}</p>
-      {%endif%}
+      {% endif %}
     <ul>
     {% for result in resp['keys'] %}
     <li>{{ result['name'] }} :
       {% if result['archived'] %}
-        <span style="background-color: black;color: {{'yellow' if result.metaonly else 'green'}};">Available {{'(metadata only)' if result.metaonly else ''}}
-          {{ '(incl. comments)' if result.comments else '' }}
-          {% if result['available'] %}<a href="{{result['available']}}" target="_top">(link)</a>
-          {% endif %}
+        <span class="{{'yellow' if result.metaonly else 'green'}}">
+          Available
+          {{'(metadata only)' if result.metaonly else ''}}
+          {{ '(may include comments)' if result.comments else '' }}
         </span>
       {% elif result['error'] %}
-        <span style="background-color: black;color: white;">Error</span>
+        <span class="white">Error</span>
       {% elif not result['archived'] %}
-        <span style="background-color: black;color: red;">Not Available</span>
+        <span class="red">Not Available</span>
       {% else %}
-        <span style="background-color: black;color: white;">Unknown</span>
+        <span class="white">Unknown</span>
       {% endif %}
-      <br>
-      {{ result['note'] }}
+      {% if result.available %}
+        <ul class="links">
+          {% for link in result.available %}
+            <li>
+              <span>
+                {% set contains = list(asd(link.contains).keys()) %}
+                {% if contains | length == 1 %}
+                  <abbr title="Contains {{ contains[0] }}">{{ link.title }}</abbr>
+                {% else %}
+                  <abbr title="May contain {{ ", ".join(contains[:-1]) + ", and " + contains[-1] }}">
+                      {{ link.title }}
+                  </abbr>
+                {% endif %}
+                <span>: </span>
+              </span>
+              <a href="{{ link.url }}">
+                {% if link.url | length > 50 %}
+                  {{ link.url[:50] + '…' }}
+                {% else %}
+                  {{ link.url }}
+                {% endif %}
+              </a>
+              {% if link.note %}
+                <br />
+                <p>{{ link.note }}</p>
+              {% endif %}
+            </li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+      {% if result.note %}
+        <br />
+        {{ result.note }}
+      {% endif %}
     </li>
-    {%endfor%}
+    {% endfor %}
     </ul>
   </body>
 </html>

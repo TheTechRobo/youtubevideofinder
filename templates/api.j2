@@ -23,12 +23,12 @@
 </div>
 <div class="container">
     <div class="banner">
-        Please don't spam my servers. Anyone who makes too many requests may be banned. Contact me on Discord
-        (username: thetechrobo), IRC (TheTechRobo on hackint, libera.chat, and OFTC), or email (thetechrobo@proton.me) to discuss.
+        If you're running into rate limits or otherwise need help, please contact me!
+        You can try Discord (username: thetechrobo), IRC (TheTechRobo on hackint, libera.chat, and OFTC), or email (thetechrobo@proton.me).
     </div>
     <br>
     <h4>API Documentation</h4>
-	<p><b>Please note: The API can be used to embed this site into your own code. If you just want to search for a video, <a href="/">return to the homepage</a>.</b></p>
+    <p><b>Please note: The API can be used to embed this site into your own code. If you just want to search for a video, <a href="/">return to the homepage</a>.</b></p>
     <h6>Call: GET <code>/api/:version/:videoid</code></h6>
 	<h6>Accepted query string parameters: <code>includeRaw</code> (set to include the <code>rawraw</code> field), <code>stream</code> (stream service objects as they are processed, rather than all at the end)</h6>
     <p>Current versions available: v2, v3, v4, v5. Documentation below only applies to the latest version.</p>
@@ -46,7 +46,7 @@
 			<li>API version v4 -&gt; 5:</li>
 			<ul>
 				<li>The deprecated <code>capcount</code> field has been removed. Previously, it was guaranteed to be a positive non-zero number if the video was archived.</li>
-				<li>The <code>available</code> field is now a list of link objects (see below).</li>
+                <li>The <code>available</code> field is now a list of link objects (see below) to allow returning multiple URLs.</li>
 				<li>The streaming protocol has been updated to support streaming the list of URLs.</li>
 			</ul>
 		</ul>
@@ -68,8 +68,8 @@
 	<p>A stream of JSONL: one json object followed by a newline, then the next, etc. The order of what is sent:
 	<ul>
 		<li>Object of internal class name to on-screen name. Use this to pre-populate the list. The internal class name may be useful for e.g. element IDs where the usable character set is limited.</li>
-		<li>Link objects. Finalized service objects, as scrapers finish.</li>
-		<li>Null, to show that we are finished generating the service objects. (You can also use the object of class names, but this probably works better.)</li>
+        <li>Link objects. Finalized service objects, as scrapers finish. (You can use the <code>type</code> field to differentiate.)</li>
+        <li>Null, to show that we are finished generating the service objects.</li>
 		<li>A verdict.</li>
 	</ul>
 	<u>NOTE:</u> In both cases, the <code>rawraw</code> field is only set if you set the <code>includeRaw</code> parameter. Example: <code>/api/v4/dQw4w9WgXcQ?includeRaw=true</code>. Please only enable this if you have to, as it will slow down loading.

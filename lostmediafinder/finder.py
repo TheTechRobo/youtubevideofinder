@@ -200,12 +200,12 @@ class ArchiveOrgDetails(YouTubeService):
                 archived = True
                 j = await resp.json()
                 lien = f"https://archive.org/details/{j['item']}"
-                note = "This is a generic channel item. It may contain multiple videos."
+                lnote = "This is a generic channel item. It may contain multiple videos."
                 yield Link(
                     url = lien,
                     contains = LinkContains(True, True, True, True, True),
                     title = "Item",
-                    note = note,
+                    note = lnote,
                 )
 
         if not archived:
@@ -271,11 +271,13 @@ class ArchiveOrgCDX(YouTubeService):
         results.sort(key=lambda x: get_int(x[2]))
 
         archived = False
-        for result in results:
+        # Limit to one result
+        # TODO: maybe add a note about this?
+        for result in results[:1]:
             yield Link(
                 url = f"https://web.archive.org/web/{result[1]}/{result[2]}",
                 contains = LinkContains(thumbnail = True),
-                title = "Thumbnail"
+                title = "Thumbnail",
             )
             archived = True
 

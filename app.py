@@ -1,3 +1,4 @@
+import dataclasses, itertools
 from quart import Quart, render_template, request, Response, redirect, send_from_directory, url_for
 import re, yaml, json
 import lostmediafinder
@@ -126,8 +127,14 @@ async def coerce_to_id_endpoint():
 async def load_thing():
     if not request.args.get("id"):
         return "Missing id parameter", 400
-    t = await youtube(3, request.args['id'], "youtube", jsn=False)
-    return await render_template("noscript/fid.j2", resp=t)
+    t = await youtube(5, request.args['id'], "youtube", jsn=False)
+    assert isinstance(t, lostmediafinder.YouTubeResponse)
+    t.keys = list(itertools.chain(
+        (k for k in t.keys if k.archived and not k.error),
+        (k for k in t.keys if k.error),
+        (k for k in t.keys if not k.error and not k.archived)
+    ))
+    return await render_template("noscript/fid.j2", resp=t, list=list, asd=dataclasses.asdict)
 
 @app.route("/")
 async def index():
