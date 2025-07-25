@@ -440,10 +440,11 @@ class removededm(YouTubeService):
 
     @classmethod
     async def _run(cls, id, session: aiohttp.ClientSession):
-        ismeta = False
+        got_video = False
         # Note: Video IDs starting with an underscore are redirected to have a period at the start due to
         #       limitations in the wiki software
-        potential_links = (f"https://removededm.com/File:{id}.mp4", f"https://removededm.com/File:{id}.webm")
+        potential_video_links = (f"https://removededm.com/File:{id}.mp4", f"https://removededm.com/File:{id}.webm")
+        potential_image_extensions = ("jpg", "png", "webp")
         archived = False
         rawraw = None
         link = f"https://removededm.com/{id}"
@@ -458,11 +459,12 @@ class removededm(YouTubeService):
                 )
             rawraw = response.status
 
-        for lnk in potential_links:
+        for lnk in potential_video_links:
             async with session.head(lnk, timeout=15, allow_redirects=True) as response:
-                is_archived = response.status == 200 # if there's a redirect, it's archived
+                is_archived = response.status == 200
                 rawraw = response.status
                 if is_archived:
+                    got_video = True
                     archived = True
                     yield Link(
                         url = lnk,
@@ -470,8 +472,20 @@ class removededm(YouTubeService):
                         title = "Video"
                     )
 
+        for extension in potential_image_extensions:
+            lnk = f"https://removededm.com/File:{id}.{extension}"
+            async with session.head(lnk, timeout=15, allow_redirects=True) as response:
+                is_archived = response.status == 200
+                if is_archived:
+                    archived = True
+                    yield Link(
+                        url = lnk,
+                        contains = LinkContains(thumbnail = True),
+                        title = "Thumbnail"
+                    )
+
         yield cls(
-            archived=archived, rawraw=rawraw, metaonly=ismeta,
+            archived=archived, rawraw=rawraw, metaonly=not got_video,
             error=None, lastupdated=time.time(), name=cls.getName(), note="", classname=cls.__name__
         )
 
