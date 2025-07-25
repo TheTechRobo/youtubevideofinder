@@ -232,6 +232,9 @@ class LinkContains(JSONDataclass):
     thumbnail: bool = False
     captions: bool = False
 
+    single_frame: bool = False
+    """A single frame from the video."""
+
 
 @dataclasses.dataclass
 class Link(JSONDataclass):

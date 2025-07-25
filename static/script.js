@@ -42,11 +42,10 @@ function makeLinkElement(link) {
     elem.appendChild(span);
     elem.appendChild(a);
 
-    const possible_contains = ["video", "metadata", "comments", "thumbnail", "captions"];
     let actual_contains = [];
-    possible_contains.forEach((i) => {
-        if (contains[i]) actual_contains.push(i);
-    });
+    for (const [key, value] of Object.entries(contains)) {
+        if (value === true) actual_contains.push(key.replace("_", " "));
+    }
     let contains_str;
     if (actual_contains.length == 1) {
         contains_str = "Contains " + actual_contains[0];

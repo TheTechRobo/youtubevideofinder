@@ -483,6 +483,19 @@ class removededm(YouTubeService):
                         contains = LinkContains(thumbnail = True),
                         title = "Thumbnail"
                     )
+            # Sometimes, if the video itself isn't available, but they have a frame from it,
+            # it'll be available here.
+            frame_link = f"https://removededm.com/File:{id}_.{extension}"
+            async with session.head(frame_link, timeout=15, allow_redirects=True) as response:
+                is_archived = response.status == 200
+                if is_archived:
+                    archived = True
+                    yield Link(
+                        url = frame_link,
+                        contains = LinkContains(single_frame = True),
+                        title = "Frame",
+                        note = "This is a single frame of the video.",
+                    )
 
         yield cls(
             archived=archived, rawraw=rawraw, metaonly=not got_video,
