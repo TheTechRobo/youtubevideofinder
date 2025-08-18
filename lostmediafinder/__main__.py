@@ -6,7 +6,6 @@ None of this is public API!
 import asyncio
 
 import click
-from switch import Switch
 
 from . import YouTubeResponse
 
@@ -32,13 +31,12 @@ def youtube(ctx, id: str, format: str) -> int:
     response = asyncio.run(YouTubeResponse.generate(id))
     if response.status == "bad.id":
         raise ValueError("Bad video ID - does not match regex")
-    with Switch(format) as case:
-        if case("json"):
-            click.echo(response.json())
-        elif case("text"):
-            click.echo(str(response).strip())
-        else:
-            raise AssertionError("This should never occur!")
+    if format == "json":
+        click.echo(response.json())
+    elif format == "text":
+        click.echo(str(response).strip())
+    else:
+        raise AssertionError("This should never occur!")
     errors = [service for service in response.keys if service.error]
     code = 2 if errors else 0
     ctx.exit(code)
