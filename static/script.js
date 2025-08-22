@@ -239,7 +239,6 @@ function finish(vid1) {
                         break;
                     }
                     case possible_states.Verdict: {
-                        console.log(`NumArchived=${numArchived}`);
                         if (numArchived <= 0) {
                             if (dd !== null) {
                                 dd.setAttribute("open", "true");

@@ -232,6 +232,11 @@ class LinkContains(JSONDataclass):
     thumbnail: bool = False
     captions: bool = False
 
+    standalone_video: bool = False
+    """Just the video, no audio."""
+    standalone_audio: bool = False
+    """Just the audio, no video."""
+
     single_frame: bool = False
     """A single frame from the video."""
 

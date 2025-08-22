@@ -1,4 +1,9 @@
 === Current Experiments ===
 
+- Wayback Machine: If a video is available on fakeurl, but not videoinfo, send a report to my server. There seem to be intermittent periods where videoinfo doesn't provide a video, but by the time I check, it is fixed. I'd like to see what these API responses look like to try and detect them. The video ID and videoinfo response are submitted.
+
+=== Previous Experiments ===
+
 - Wayback Machine: Checks two supposedly equivalent API endpoints. If they don't match, send a report to my server. I have been made aware of a video that is not recognized on the fakeurl endpoint but is recognized on the videoinfo endpoint. The video ID, fakeurl result, and videoinfo result are included in the report.
+	(Conclusion: fakeurl is more susceptible to consistent false negatives. videoinfo is more susceptible to temporary false negatives.)
 

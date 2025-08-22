@@ -65,21 +65,7 @@ class WaybackMachine(YouTubeService):
     @classmethod
     async def _run(cls, id: str, session: aiohttp.ClientSession):
         ismeta = False
-        lien = f"https://web.archive.org/web/0id_/http://wayback-fakeurl.archive.org/yt/{id}"
-
-        async with session.head(lien, allow_redirects=False, timeout=15) as response:
-            redirect = response.headers.get("location")
-            archived = bool(redirect)  # Archived if there is a redirect
-            if redirect:
-                u = URL(redirect)
-                assert u.path != "/sry", "Redirected to sorry page. Is IA down?"
-            fakeurl_archived = archived
-            if archived:
-                yield Link(
-                    url = lien,
-                    contains = LinkContains(video = True),
-                    title = "Video"
-                )
+        archived = False
 
         params = {"vtype": "youtube", "vid": id}
         async with session.get("https://web.archive.org/__wb/videoinfo", params=params, timeout=5) as response:
@@ -87,21 +73,52 @@ class WaybackMachine(YouTubeService):
             videoinfo_archived = bool(viresp.get("formats"))
             if videoinfo_archived:
                 archived = True
-        if fakeurl_archived != videoinfo_archived:
-            await submit_experiment(session, "wb-index-weirdness", id, fakeurl=fakeurl_archived, videoinfo=videoinfo_archived)
-            if videoinfo_archived:
-                # TODO: better sorting system; right now while this is
-                # an edge case I'm not going to bother, but if it ever is the default
-                # this should be improved
                 formats = viresp['formats']
                 for format in formats:
                     url, ts = format['url'], format['timestamp']
                     lien = f"https://web.archive.org/web/{ts}/{url}"
+                    mimetype = format['mimetype']
+                    m_type, m_format = mimetype.split("/", 1)
+                    if m_type == "video":
+                        title = f"Video ({m_format})"
+                        contains = LinkContains(
+                            video = True,
+                            standalone_video = True
+                        )
+                    elif m_type == "audio":
+                        title = f"Audio ({m_format})"
+                        contains = LinkContains(
+                            standalone_audio = True
+                        )
+                    else:
+                        title = mimetype
+                        contains = LinkContains(
+                            video = True,
+                            standalone_video = True,
+                            standalone_audio = True
+                        )
                     yield Link(
                         url = lien,
-                        contains = LinkContains(video = True),
-                        title = "Video"
+                        contains = contains,
+                        title = title,
                     )
+
+        if not archived:
+            lien = f"https://web.archive.org/web/0id_/http://wayback-fakeurl.archive.org/yt/{id}"
+            async with session.head(lien, allow_redirects=False, timeout=15) as response:
+                redirect = response.headers.get("location")
+                archived = bool(redirect)
+                if redirect:
+                    assert URL(redirect) != "/sry", "Redirected to sorry page. Is IA down?"
+                fakeurl_archived = archived
+                if fakeurl_archived:
+                    yield Link(
+                        url = lien,
+                        contains = LinkContains(video = True, standalone_video = True),
+                        title = "Video",
+                        note = "A backup endpoint was used. More formats may be available later.",
+                    )
+                    await submit_experiment(session, "wb-vi-failures", id, fakeurl=fakeurl_archived, videoinfo=videoinfo_archived, viresp=viresp)
 
         response2 = None
         url_formats = [
@@ -152,7 +169,7 @@ class WaybackMachine(YouTubeService):
                         lien = response2["archived_snapshots"]["closest"]["url"]
                         break
 
-        rawraw = (redirect, viresp, response2)
+        rawraw = (None, viresp, response2)
         yield cls(
             archived=archived, rawraw=rawraw,
             lastupdated=time.time(), name=cls.getName(), note="", metaonly=ismeta,
