@@ -224,6 +224,10 @@ class ArchiveOrgDetails(YouTubeService):
                     title = "Item",
                     note = lnote,
                 )
+            elif resp.status == 404:
+                pass
+            else:
+                raise AssertionError("fyt-helper check failed")
 
         if not archived:
             note = "Even if it isn't found here, it might still be in the Internet Archive. This site only checks for certain item identifiers."
