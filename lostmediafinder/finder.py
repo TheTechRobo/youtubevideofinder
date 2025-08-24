@@ -476,7 +476,7 @@ class removededm(YouTubeService):
                 yield Link(
                     url = link,
                     contains = LinkContains(video = True, metadata = True, thumbnail = True),
-                    title = "Wiki page"
+                    title = "Metadata"
                 )
             rawraw = response.status
 
