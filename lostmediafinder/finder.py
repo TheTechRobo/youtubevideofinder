@@ -475,7 +475,7 @@ class removededm(YouTubeService):
             if archived:
                 yield Link(
                     url = link,
-                    contains = LinkContains(video = True, metadata = True, thumbnail = True),
+                    contains = LinkContains(metadata = True),
                     title = "Metadata"
                 )
             rawraw = response.status
