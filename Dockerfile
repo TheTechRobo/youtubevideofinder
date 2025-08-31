@@ -3,7 +3,7 @@ RUN pip install --no-cache-dir hypercorn quart
 RUN apt install -y openssl
 RUN apt clean
 # The following line does not necessarily have to be updated with the requirements.txt as this is just to speed up the requirements.txt part (to improve cachability)
-RUN pip install --no-cache-dir snscrape==0.4.3.20220106 aiohttp[speedups] requests nest_asyncio cachetools click asyncache pyyaml
+RUN pip install --no-cache-dir snscrape==0.4.3.20220106 aiohttp[speedups] requests click pyyaml
 
 EXPOSE 8000
 COPY . /app

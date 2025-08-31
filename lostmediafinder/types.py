@@ -9,8 +9,6 @@ import re
 
 import asyncio
 import aiohttp
-import cachetools
-import asyncache
 import yaml
 
 from snscrape.base import _JSONDataclass as JSONDataclass
@@ -32,7 +30,7 @@ class Service(JSONDataclass):
         archived (bool): Whether the video is archived or not.
         available (list[Link]): Links to the archived material.
         error (Optional[str]): An error message if an error was encountered; otherwise, null.
-        lastupdated (int): The timestamp the data was retrieved from the server. Used internally to expire cache entries.
+        lastupdated (int): The timestamp the data was retrieved from the server.
         name (str): The name of the service. Used in the UI.
         note (str): A footnote about the service. This could be different depending on conditions. For example, the Internet Archive has an extra passage if the item is dark. Used in the UI.
         rawraw (Any): The data used to check whether the video is archived on that particular service. For example, for GhostArchive, it would be the HTTP status code. The structure could change at any time.
@@ -74,7 +72,6 @@ class Service(JSONDataclass):
         return serviceConfig['enabled']
 
     @classmethod
-    @asyncache.cached(cachetools.TTLCache(1024, 600))
     async def run(cls, id: str, session: aiohttp.ClientSession, includeRaw=True, **kwargs):
         """
         Retrieves the data from the service.
