@@ -65,6 +65,10 @@ methods:
     title: Nyane.online
     enabled: true
 
+  letsplayindex:
+    title: Letsplayindex.com
+    enabled: true
+
 # Global User-Agent
 user_agent: "FindYoutubeVideo/1.0 operated by XYZ"
 
