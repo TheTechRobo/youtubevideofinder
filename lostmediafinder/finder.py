@@ -733,3 +733,36 @@ class NyaneOnline(YouTubeService):
                    name=cls.getName(), note=cls.note,
                    rawraw=None, metaonly=False, classname=cls.__name__
         )
+
+class LetsPlayIndex(YouTubeService):
+    name = methods['letsplayindex']['title']
+    note = ""
+    configId = "letsplayindex"
+
+    @classmethod
+    async def _run(cls, id, session: aiohttp.ClientSession):
+        url = f"https://www.letsplayindex.com/video/x-{id}"
+        archived = False
+
+        try:
+            async with session.head(url, timeout=15) as resp:
+                lastupdated = time.time()
+                status = resp.status
+                if status == 301:
+                    archived = True
+                    available = str(resp.request_info.url)
+                    yield Link(
+                        url = available,
+                        contains = LinkContains(video = True, metadata = True, thumbnail = True),
+                        title = "Video"
+                    )
+                elif status == 404:
+                    archived = False
+        except (aiohttp.ClientError, asyncio.TimeoutError):
+            archived = False
+            lastupdated = time.time()
+        
+        yield cls(archived=archived, lastupdated=lastupdated,
+                   name=cls.getName(), note=cls.note,
+                   rawraw=None, metaonly=False, classname=cls.__name__
+        )
