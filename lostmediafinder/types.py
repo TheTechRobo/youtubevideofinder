@@ -414,7 +414,7 @@ class YouTubeResponse(JSONDataclass):
                     queue_task.cancel()
                 done_task.cancel()
 
-            done, pending = await asyncio.wait(coroutines, timeout = 0)
+            done_tasks, pending = await asyncio.wait(coroutines, timeout = 0)
             assert not pending
         yield None
         any_comments_archived = any(map(lambda e : e.comments, keys))

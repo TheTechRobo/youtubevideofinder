@@ -745,7 +745,7 @@ class LetsPlayIndex(YouTubeService):
         archived = False
 
         try:
-            async with session.head(url, timeout=15) as resp:
+            async with session.head(url, timeout=10) as resp:
                 lastupdated = time.time()
                 status = resp.status
                 if status == 301:
@@ -753,15 +753,16 @@ class LetsPlayIndex(YouTubeService):
                     available = str(resp.request_info.url)
                     yield Link(
                         url = available,
-                        contains = LinkContains(video = True, metadata = True, thumbnail = True),
+                        contains = LinkContains(metadata = True, thumbnail = True),
                         title = "Video"
                     )
-                elif status == 404:
-                    archived = False
-        except (aiohttp.ClientError, asyncio.TimeoutError):
+                else:
+                    raise AssertionError(f"Unexpected status code {status}")
+        except asyncio.TimeoutError:
+            # ...why?
             archived = False
             lastupdated = time.time()
-        
+
         yield cls(archived=archived, lastupdated=lastupdated,
                    name=cls.getName(), note=cls.note,
                    rawraw=None, metaonly=False, classname=cls.__name__
