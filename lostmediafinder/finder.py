@@ -435,6 +435,8 @@ class Hobune(YouTubeService):
         lastupdated = time.time()
         cls.lastretrieved = lastupdated
 
+        comments = False
+
         for url in urls_to_try:
             url = url.format(id)
             async with session.head(url, timeout=5) as resp:
@@ -447,12 +449,22 @@ class Hobune(YouTubeService):
                     contains = LinkContains(video = True, metadata = True, thumbnail = True),
                     title = "Video"
                 )
+
+                comments_url = url.replace("/videos/", "/comments/")
+                async with session.head(comments_url, timeout=5) as comments_resp:
+                    if comments_resp.status == 200:
+                        comments = True
+                        yield Link(
+                            url = comments_url,
+                            contains = LinkContains(comments = True),
+                            title = "Comments"
+                        )
             elif code != 404:
                 raise RuntimeError("Hobune.stream returned invalid status code %s" % code)
 
         yield cls(
-            archived=archived, lastupdated=lastupdated, name=cls.getName(), note="",
-            rawraw=raw, metaonly=False, classname=cls.__name__
+            archived=archived, comments=comments, lastupdated=lastupdated, name=cls.getName(),
+            note="", rawraw=raw, metaonly=False, classname=cls.__name__
         )
 
 class removededm(YouTubeService):
