@@ -74,7 +74,17 @@ class WaybackMachine(YouTubeService):
             if videoinfo_archived:
                 archived = True
                 formats = viresp['formats']
-                for format in formats:
+                processed_formats = []
+
+                # When the indexer detects split formats, it makes a map.
+                if isinstance(formats, dict):
+                    processed_formats.extend(formats['video'])
+                    processed_formats.extend(formats['audio'])
+                # Otherwise, it'll be an array.
+                else:
+                    processed_formats = formats
+
+                for format in processed_formats:
                     url, ts = format['url'], format['timestamp']
                     lien = f"https://web.archive.org/web/{ts}/{url}"
                     mimetype = format['mimetype']
@@ -97,12 +107,32 @@ class WaybackMachine(YouTubeService):
                             standalone_video = True,
                             standalone_audio = True
                         )
+                    note = None
+                    # This occurs when there are split formats.
+                    # Two extra keys exist, codecs and itag.
+                    if codec := format.get("codec"):
+                        # Make it a nicer string
+                        try:
+                            video, audio = codec.split(", ")
+                            # Did no one notice the typo? :P
+                            if video == "Unknwn":
+                                video = "No"
+                                contains = LinkContains(standalone_audio = True)
+                            elif audio == "Unknwn":
+                                audio = "no"
+                                contains = LinkContains(standalone_video = True)
+                            codec = f"{video} video, {audio} audio"
+                        except ValueError: # If they change the format
+                            pass
+                        note = f"{codec} ({format['itag']})"
                     yield Link(
                         url = lien,
                         contains = contains,
                         title = title,
+                        note = note,
                     )
 
+        # fakeurl fallback
         if not archived:
             lien = f"https://web.archive.org/web/0id_/http://wayback-fakeurl.archive.org/yt/{id}"
             async with session.head(lien, allow_redirects=False, timeout=15) as response:
@@ -154,6 +184,7 @@ class WaybackMachine(YouTubeService):
             except (aiohttp.ClientError, asyncio.TimeoutError):
                 continue
 
+        # remove this?
         if not archived:
             lien = None
             for check in url_formats:
