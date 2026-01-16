@@ -1,15 +1,10 @@
-"""
-The CLI interface of LostMediaFinder.
-None of this is public API!
-"""
-
 import asyncio
 
 import click
 
 from . import YouTubeResponse
 
-@click.group(help="CLI tool to search for lost media")
+@click.group(help="CLI tool to search for archived YouTube content")
 def main():
     """
     Error codes:
@@ -26,7 +21,7 @@ def youtube(ctx, id: str, format: str) -> int:
     """
     Parses CLI arguments and returns the Response for the video ID <IDENT>.
     """
-    click.echo("\033[1m\033[4m\033[1;31mUsing LostMediaFinder from the command-line is unstable!\033[0m", err=True)
+    click.echo("\033[1m\033[4m\033[1;31m* The command-line interface is unstable and does not include all features.\033[0m", err=True)
     click.echo("Generating report, this could take some time...", err=True)
     response = asyncio.run(YouTubeResponse.generate(id))
     if response.status == "bad.id":

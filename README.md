@@ -1,13 +1,10 @@
-# lostmediafinder
-Currently YouTube is the only supported site, but that might change.
+# youtubevideofinder
+Searches through various places for archived YouTube content.
 
 Contributions are welcome!
 
-## CLI tool
-Currently no documentation exists for the CLI tool.
-
 ## Usage as a module
-There are docstrings included in the module (it is contained in `lostmediafinder`), but no `setup.py` or PyPI package is currently included. This is because it is not yet 100% stable (and I plan on adding support for more websites soon).
+There are docstrings included in the module (it is contained in `youtubevideofinder`), but no `setup.py` or PyPI package is currently included. This is because it is not yet 100% stable, and the API still isn't great.
 
 ## Frontend
 ### Running in Docker (recommended):
@@ -18,7 +15,7 @@ Instead of modiying the Hypercorn config, use `HYPERCORN_<VARIABLE_NAME>` enviro
 A command like this should work (runs on port 8000; change the `-p` flag to `<whatever port you want>:8000` to change that):
 
 ```
-docker run --restart=unless-stopped -p 8000:8000 -e GUNICORN_WORKERS=4 thetechrobo/findyoutubevideo
+docker run --restart=unless-stopped -p 8000:8000 -e thetechrobo/findyoutubevideo
 ```
 
 ### Running outside of Docker (unsupported)
@@ -53,7 +50,7 @@ Scrapers should try to yield the best or near-best link first, for best compatib
 
 ## Licence
 
-Copyright (c) 2022-2025 TheTechRobo
+Copyright (c) 2022-2026 TheTechRobo
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

@@ -1,7 +1,7 @@
 import dataclasses, itertools
 from quart import Quart, render_template, request, Response, redirect, send_from_directory, url_for
 import re, yaml, json
-import lostmediafinder
+import findyoutubevideo
 
 class EscapingQuart(Quart):
     def select_jinja_autoescape(self, filename: str) -> bool:
@@ -21,22 +21,22 @@ async def youtubev2(id):
     """
     Provides backwards compatibility for the old endpoint.
     """
-    return (await lostmediafinder.YouTubeResponse.generate(id)).coerce_to_api_version(2).json(), {"Content-Type": "application/json"}
+    return (await findyoutubevideo.YouTubeResponse.generate(id)).coerce_to_api_version(2).json(), {"Content-Type": "application/json"}
 
 async def wrapperYT(id, includeRaw):
     """
     Wrapper for generate
     """
     try:
-        return await lostmediafinder.YouTubeResponse.generate(id, includeRaw)
-    except lostmediafinder.types.InvalidVideoIdError:
+        return await findyoutubevideo.YouTubeResponse.generate(id, includeRaw)
+    except findyoutubevideo.types.InvalidVideoIdError:
         return {"status": "bad.id", "id": None}
 
 async def wrapperYTS(id, includeRaw):
     """
     Wrapper for generateStream
     """
-    return await lostmediafinder.YouTubeResponse.generateStream(id, includeRaw)
+    return await findyoutubevideo.YouTubeResponse.generateStream(id, includeRaw)
 
 @app.route("/api/v<int:v>/<site>/<id>")
 @app.route("/api/v<int:v>/<id>")
@@ -128,7 +128,7 @@ async def load_thing():
     if not request.args.get("id"):
         return "Missing id parameter", 400
     t = await youtube(5, request.args['id'], "youtube", jsn=False)
-    assert isinstance(t, lostmediafinder.YouTubeResponse)
+    assert isinstance(t, findyoutubevideo.YouTubeResponse)
     t.keys = list(itertools.chain(
         (k for k in t.keys if k.archived and not k.error),
         (k for k in t.keys if k.error),
@@ -160,7 +160,7 @@ async def index():
 # The following code should be taken out and shot
 def parse_changelog(changelog):
     """
-    Parses a changelog out of a lostmediafinder docstring
+    Parses a changelog out of a findyoutubevideo docstring
     """
     parsed = {}
     for i in changelog.split("API VERSION "):
@@ -202,9 +202,9 @@ async def api():
     """
     API docs
     """
-    responseDocstring = lostmediafinder.YouTubeResponse.__doc__
-    serviceDocstring = lostmediafinder.Service.__doc__
-    linkDocstring = lostmediafinder.Link.__doc__
+    responseDocstring = findyoutubevideo.YouTubeResponse.__doc__
+    serviceDocstring = findyoutubevideo.Service.__doc__
+    linkDocstring = findyoutubevideo.Link.__doc__
     # Parse the attributes list
     responseDocstring = await parse_lines(responseDocstring.split("Attributes:\n")[1].strip().split("\n"))
     serviceDocstring  = await parse_lines(serviceDocstring.split("Attributes:\n")[1].strip().split("\n"))
