@@ -4,10 +4,10 @@ All the Service implementations live here.
 
 import random, time, aiohttp, asyncio
 import typing_extensions as typing
-from .types import Link, LinkContains, YouTubeService, methods, experiment_base_url
+from .types import FytSession, Link, LinkContains, Service, methods, experiment_base_url
 from yarl import URL
 
-async def submit_experiment(session: aiohttp.ClientSession, experiment_name: str, video_id: str, **report):
+async def submit_experiment(session: FytSession, experiment_name: str, video_id: str, **report):
     if experiment_base_url:
         report |= {
             "experiment": experiment_name,
@@ -18,7 +18,7 @@ async def submit_experiment(session: aiohttp.ClientSession, experiment_name: str
         except Exception:
             pass
 
-class YouTube(YouTubeService):
+class YouTube(Service):
     """
     Checks if the video is still available on YouTube.
     Thumbnail method has a few edge cases but seems the most reliable for all tested cases.
@@ -27,7 +27,7 @@ class YouTube(YouTubeService):
     configId = "youtube"
 
     @classmethod
-    async def _run(cls, id, session: aiohttp.ClientSession):
+    async def _run(cls, id, session: FytSession):
         lien = f"https://i.ytimg.com/vi/{id}/hqdefault.jpg"
         async with session.head(lien, allow_redirects=False, timeout=15) as response:
             code = response.status
@@ -58,12 +58,12 @@ class YouTube(YouTubeService):
         )
 
 
-class WaybackMachine(YouTubeService):
+class WaybackMachine(Service):
     name = methods["ia_wayback"]["title"]
     configId = "ia_wayback"
 
     @classmethod
-    async def _run(cls, id: str, session: aiohttp.ClientSession):
+    async def _run(cls, id: str, session: FytSession):
         ismeta = False
         archived = False
 
@@ -208,7 +208,7 @@ class WaybackMachine(YouTubeService):
         )
 
 
-class ArchiveOrgDetails(YouTubeService):
+class ArchiveOrgDetails(Service):
     name = methods["ia_details"]["title"]
     configId = "ia_details"
     items_tried = [
@@ -218,7 +218,7 @@ class ArchiveOrgDetails(YouTubeService):
     ]
 
     @classmethod
-    async def _run(cls, id, session: aiohttp.ClientSession):
+    async def _run(cls, id, session: FytSession):
         responses = []
         is_dark = False
         archived = False
@@ -270,7 +270,7 @@ class ArchiveOrgDetails(YouTubeService):
         )
 
 
-class ArchiveOrgCDX(YouTubeService):
+class ArchiveOrgCDX(Service):
     """
     Queries the Archive.org CDX for an archived video thumb
     """
@@ -278,7 +278,7 @@ class ArchiveOrgCDX(YouTubeService):
     configId = "ia_cdx"
 
     @classmethod
-    async def _run(cls, id, session: aiohttp.ClientSession):
+    async def _run(cls, id, session: FytSession):
         cdx_urls = [
             f"https://web.archive.org/cdx/search/cdx?url=i.ytimg.com/vi/{id}*&collapse=digest&filter=statuscode:200&mimetype:image/jpeg&output=json",
             f"https://web.archive.org/cdx/search/cdx?url=i1.ytimg.com/vi/{id}*&collapse=digest&filter=statuscode:200&mimetype:image/jpeg&output=json",
@@ -340,12 +340,12 @@ class ArchiveOrgCDX(YouTubeService):
         )
 
 
-class GhostArchive(YouTubeService):
+class GhostArchive(Service):
     name = methods["ghostarchive"]["title"]
     configId = "ghostarchive"
 
     @classmethod
-    async def _run(cls, id, session: aiohttp.ClientSession):
+    async def _run(cls, id, session: FytSession):
         link = f"https://ghostarchive.org/varchive/{id}"
         async with session.get(link, timeout=5) as resp:
             code = resp.status
@@ -373,7 +373,7 @@ class GhostArchive(YouTubeService):
             metaonly=False, classname=cls.__name__
         )
 
-class HackintYa(YouTubeService):
+class HackintYa(Service):
     name = methods["hackint_ya"]["title"]
     note = ("Video retrieval is currently not available for technical reasons. "
             "Check back later for access instructions. This may take weeks or months."
@@ -381,7 +381,7 @@ class HackintYa(YouTubeService):
     configId = "hackint_ya"
 
     @classmethod
-    async def _run(cls, id, session: aiohttp.ClientSession):
+    async def _run(cls, id, session: FytSession):
         username: str = methods[cls.configId]["username"]
         password: str = methods[cls.configId]["password"]
         excluded: list[str] = methods[cls.configId].get("excluded", [])
@@ -410,12 +410,12 @@ class HackintYa(YouTubeService):
         )
 
 
-class DistributedYoutubeArchive(YouTubeService):
+class DistributedYoutubeArchive(Service):
     name = methods['distributed_youtube_archive']['title']
     configId = "distributed_youtube_archive"
 
     @classmethod
-    async def _run(cls, id, session: aiohttp.ClientSession):
+    async def _run(cls, id, session: FytSession):
         lastupdated = time.time()
         async with session.get(f"https://dya-t-api.strangled.net/api/video/{id}") as resp:
             status = resp.status
@@ -450,14 +450,14 @@ class DistributedYoutubeArchive(YouTubeService):
             classname=cls.__name__
         )
 
-class Hobune(YouTubeService):
+class Hobune(Service):
     name = methods["hobune_stream"]["title"]
     configId = "hobune_stream"
     lastretrieved = 0
     cooldown = 0.5
 
     @classmethod
-    async def _run(cls, id, session: aiohttp.ClientSession):
+    async def _run(cls, id, session: FytSession):
         while time.time() - cls.lastretrieved < cls.cooldown:
             await asyncio.sleep(0.1)
         urls_to_try = ("https://hobune.stream/videos/{}", "https://hobune.stream/tpa-h/videos/{}")
@@ -486,84 +486,109 @@ class Hobune(YouTubeService):
             rawraw=raw, metaonly=False, classname=cls.__name__
         )
 
-class removededm(YouTubeService):
+class removededm(Service):
     name = methods["removededm"]["title"]
     configId = "removededm"
+    endpoint = "https://removededm.com/w/api.php"
 
     @classmethod
-    async def _run(cls, id, session: aiohttp.ClientSession):
+    async def _run(cls, id, session: FytSession):
         got_video = False
-        # Note: Video IDs starting with an underscore are redirected to have a period at the start due to
-        #       limitations in the wiki software
         potential_video_links = (f"https://removededm.com/File:{id}.mp4", f"https://removededm.com/File:{id}.webm")
         potential_image_extensions = ("jpg", "png", "webp")
+        potential_files = (
+            ([f"{id}"], dict(contains = LinkContains(metadata = True), title = "Metadata")),
+            ([f"File:{id}.mp4", f"File:{id}.webm"], dict(contains = LinkContains(video = True), title = "Video")),
+            ([f"File:{id}.{ext}" for ext in potential_image_extensions], dict(
+                contains = LinkContains(thumbnail = True),
+                title = "Thumbnail"
+            )),
+            ([f"File:{id}_.{ext}" for ext in potential_image_extensions], dict(
+                contains = LinkContains(single_frame = True),
+                title = "Frame",
+                note = "This is a single frame of the video."
+            )),
+        )
         archived = False
         rawraw = None
         link = f"https://removededm.com/{id}"
 
-        async with session.head(link, timeout=15, allow_redirects=True) as response:
-            archived = response.status == 200
-            if archived:
-                yield Link(
-                    url = link,
-                    contains = LinkContains(metadata = True),
-                    title = "Metadata"
-                )
-            rawraw = response.status
+        api_request = {
+            "action": "query",
+            "format": "json",
+            "titles": "|".join("|".join(i) for i, _ in potential_files),
+            "formatversion": "2",
+        }
+        async with session.get(cls.endpoint, params = api_request) as response:
+            j = await response.json()
+            if "error" in j and j['error'].get("code") == "readapidenied":
+                await cls.login(session)
+                async with session.get(cls.endpoint, params = api_request) as response:
+                    j = await response.json()
+            if "error" in j:
+                raise RuntimeError("API error")
 
-        for lnk in potential_video_links:
-            async with session.head(lnk, timeout=15, allow_redirects=True) as response:
-                is_archived = response.status == 200
-                rawraw = response.status
-                if is_archived:
-                    got_video = True
+        pages = set(page['title'] for page in j['query']['pages'] if not page.get("missing"))
+        # MediaWiki will normalize IDs with underscores, like _kVU4fHJ9JM m_yqgZV6G5c
+        for normalized_page in j['query']['normalized']:
+            # Keep the old ones in the set; it doesn't hurt anything, and there might be weird behaviour in certain cases
+            # Pages that don't exist are still included in the list, so check for existence beforehand
+            if normalized_page['to'] in pages:
+                pages.add(normalized_page['from'])
+        for files, args in potential_files:
+            if args['contains'].video:
+                got_video = True
+            for file in files:
+                if file in pages:
                     archived = True
-                    yield Link(
-                        url = lnk,
-                        contains = LinkContains(video = True),
-                        title = "Video"
-                    )
-
-        for extension in potential_image_extensions:
-            lnk = f"https://removededm.com/File:{id}.{extension}"
-            async with session.head(lnk, timeout=15, allow_redirects=True) as response:
-                is_archived = response.status == 200
-                if is_archived:
-                    archived = True
-                    yield Link(
-                        url = lnk,
-                        contains = LinkContains(thumbnail = True),
-                        title = "Thumbnail"
-                    )
-            # Sometimes, if the video itself isn't available, but they have a frame from it,
-            # it'll be available here.
-            frame_link = f"https://removededm.com/File:{id}_.{extension}"
-            async with session.head(frame_link, timeout=15, allow_redirects=True) as response:
-                is_archived = response.status == 200
-                if is_archived:
-                    archived = True
-                    yield Link(
-                        url = frame_link,
-                        contains = LinkContains(single_frame = True),
-                        title = "Frame",
-                        note = "This is a single frame of the video.",
-                    )
+                    yield Link(url = f"https://removededm.com/{file}", **args)
 
         yield cls(
             archived=archived, rawraw=rawraw, metaonly=not got_video,
             error=None, lastupdated=time.time(), name=cls.getName(), note="", classname=cls.__name__
         )
 
-# TODO: Make a YouTubeServiceWithCooldown or something
+    @classmethod
+    async def login(cls, session: FytSession):
+        # Need to set up proper debug logging.
+        print("Logging into removededm", flush = True)
+        username = methods[cls.configId]['username']
+        password = methods[cls.configId]['password']
+        # Get a lockso we don't log in multiple times at once
+        async with session.get_lock(cls):
+            # What's wrong with just including an API key in every request? :(
+            token_request_params = {
+                "action": "query",
+                "format": "json",
+                "meta": "tokens",
+                "type": "login",
+                "formatversion": "2",
+            }
+            async with session.get(cls.endpoint, params = token_request_params) as response:
+                j = await response.json()
+                token = j['query']['tokens']['logintoken']
 
-class Filmot(YouTubeService):
+            login_request_params = {
+                "action": "login",
+                "format": "json",
+                "formatversion": "2",
+                "lgname": username,
+                "lgpassword": password,
+                "lgtoken": token,
+            }
+            async with session.post(cls.endpoint, data = login_request_params) as response:
+                j = await response.json()
+                if j['login']['result'] != "Success":
+                    raise RuntimeError("Login failure")
+
+class Filmot(Service):
     name = methods["filmot"]["title"]
     lastretrieved: int = 0
     cooldown: int = 2
     configId = "filmot"
 
     @classmethod
-    async def _run(cls, id, session: aiohttp.ClientSession):
+    async def _run(cls, id, session: FytSession):
         key = methods[cls.configId]["api_key"]
 
         while time.time() - cls.lastretrieved < cls.cooldown:
@@ -589,7 +614,7 @@ class Filmot(YouTubeService):
                 classname=cls.__name__
         )
 
-class Playboard(YouTubeService):
+class Playboard(Service):
     """
     Playboard is metadata-only as far as I know.
     """
@@ -599,7 +624,7 @@ class Playboard(YouTubeService):
     user_agent = methods["playboard_co"]["user_agent"]
 
     @classmethod
-    async def _run(cls, id, session: aiohttp.ClientSession):
+    async def _run(cls, id, session: FytSession):
         note = cls.note
         user_agent = cls.user_agent % random.randint(0, 100)
         url = f"https://playboard.co/en/video/{id}"
@@ -628,7 +653,7 @@ class Playboard(YouTubeService):
                 classname=cls.__name__
         )
 
-class AltCensored(YouTubeService):
+class AltCensored(Service):
     """
     altCensored does not store any videos. Instead, it links to archived versions.
     """
@@ -637,7 +662,7 @@ class AltCensored(YouTubeService):
     configId = "altcensored"
 
     @classmethod
-    async def _run(cls, id, session: aiohttp.ClientSession):
+    async def _run(cls, id, session: FytSession):
         url = f"https://altcensored.com/watch?v={id}"
         async with session.get(url) as resp:
             code = resp.status
@@ -659,7 +684,7 @@ class AltCensored(YouTubeService):
                 rawraw=None, metaonly=False, classname=cls.__name__
         )
 
-class Odysee(YouTubeService):
+class Odysee(Service):
     """
     Queries the LBRY YouTube Sync API to find out whether the video has been mirrored to Odysee.
     """
@@ -667,7 +692,7 @@ class Odysee(YouTubeService):
     configId = "odysee"
 
     @classmethod
-    async def _run(cls, id, session: aiohttp.ClientSession):
+    async def _run(cls, id, session: FytSession):
         lastupdated = time.time()
         async with session.get(f"https://api.lbry.com/yt/resolve?video_ids={id}") as resp:
             status = resp.status
@@ -699,17 +724,17 @@ class Odysee(YouTubeService):
             classname=cls.__name__
         )
 
-class PreserveTube(YouTubeService):
+class PreserveTube(Service):
     name = methods["preservetube"]["title"]
     note = ""
     configId = "preservetube"
 
     @classmethod
-    async def _run(cls, id, session: aiohttp.ClientSession):
+    async def _run(cls, id, session: FytSession):
         url = f"https://api.preservetube.com/video/{id}"
 
         # keep any pre-existing headers but patch in "Accept"
-        headers = session.headers.copy()
+        headers = session.session.headers.copy()
         headers.update({"Accept": "application/json"})
 
         async with session.get(url, headers=headers) as resp:
@@ -735,13 +760,13 @@ class PreserveTube(YouTubeService):
                 rawraw=None, metaonly=False, classname=cls.__name__
         )
 
-class NyaneOnline(YouTubeService):
+class NyaneOnline(Service):
     name = methods['nyaneonline']['title']
     note = ""
     configId = "nyaneonline"
 
     @classmethod
-    async def _run(cls, id, session: aiohttp.ClientSession):
+    async def _run(cls, id, session: FytSession):
         url = f"https://www.nyane.online/video"
 
         async with session.head(url, params={"id": id}) as resp:
@@ -765,13 +790,13 @@ class NyaneOnline(YouTubeService):
                    rawraw=None, metaonly=False, classname=cls.__name__
         )
 
-class LetsPlayIndex(YouTubeService):
+class LetsPlayIndex(Service):
     name = methods['letsplayindex']['title']
     note = ""
     configId = "letsplayindex"
 
     @classmethod
-    async def _run(cls, id, session: aiohttp.ClientSession):
+    async def _run(cls, id, session: FytSession):
         url = f"https://www.letsplayindex.com/video/x-{id}"
         archived = False
 

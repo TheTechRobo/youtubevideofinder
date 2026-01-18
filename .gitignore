@@ -1,4 +1,5 @@
 README.md.backup
+batcher.py
 *.pyc
 nohup.out
 .idea

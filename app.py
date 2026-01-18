@@ -12,6 +12,11 @@ app = EscapingQuart(__name__)
 with open('config.yml', 'r') as file:
     config_yml = yaml.safe_load(file)
 
+@app.before_serving
+async def _make_session():
+    global FYT_SESSION
+    FYT_SESSION = await findyoutubevideo.FytSession.new(True)
+
 @app.route("/robots.txt")
 async def robots():
     return await send_from_directory("static", "robots.txt")
@@ -21,14 +26,14 @@ async def youtubev2(id):
     """
     Provides backwards compatibility for the old endpoint.
     """
-    return (await findyoutubevideo.YouTubeResponse.generate(id)).coerce_to_api_version(2).json(), {"Content-Type": "application/json"}
+    return (await FYT_SESSION.generate(id)).coerce_to_api_version(2).json(), {"Content-Type": "application/json"}
 
 async def wrapperYT(id, includeRaw):
     """
     Wrapper for generate
     """
     try:
-        return await findyoutubevideo.YouTubeResponse.generate(id, includeRaw)
+        return await FYT_SESSION.generate(id, includeRaw)
     except findyoutubevideo.types.InvalidVideoIdError:
         return {"status": "bad.id", "id": None}
 
@@ -36,7 +41,7 @@ async def wrapperYTS(id, includeRaw):
     """
     Wrapper for generateStream
     """
-    return await findyoutubevideo.YouTubeResponse.generateStream(id, includeRaw)
+    return await FYT_SESSION.generateStream(id, includeRaw)
 
 @app.route("/api/v<int:v>/<site>/<id>")
 @app.route("/api/v<int:v>/<id>")
@@ -128,7 +133,7 @@ async def load_thing():
     if not request.args.get("id"):
         return "Missing id parameter", 400
     t = await youtube(5, request.args['id'], "youtube", jsn=False)
-    assert isinstance(t, findyoutubevideo.YouTubeResponse)
+    assert isinstance(t, findyoutubevideo.Response)
     t.keys = list(itertools.chain(
         (k for k in t.keys if k.archived and not k.error),
         (k for k in t.keys if k.error),
@@ -202,8 +207,8 @@ async def api():
     """
     API docs
     """
-    responseDocstring = findyoutubevideo.YouTubeResponse.__doc__
-    serviceDocstring = findyoutubevideo.Service.__doc__
+    responseDocstring = findyoutubevideo.Response.__doc__
+    serviceDocstring = findyoutubevideo.BaseService.__doc__
     linkDocstring = findyoutubevideo.Link.__doc__
     # Parse the attributes list
     responseDocstring = await parse_lines(responseDocstring.split("Attributes:\n")[1].strip().split("\n"))

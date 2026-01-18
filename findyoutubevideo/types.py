@@ -6,6 +6,7 @@ import dataclasses
 import time
 import typing_extensions as typing
 import re
+import traceback
 
 import asyncio
 import aiohttp
@@ -21,8 +22,159 @@ with open('config.yml', 'r') as file:
     if experiment_base_url:
         experiment_base_url = experiment_base_url.rstrip("/")
 
+def create_verdict(archived: dict):
+    verdict = ""
+    if archived['video']:
+        verdict += "Archived! "
+    elif archived['metaonly']:
+        verdict += "Archived with metadata only. "
+    else:
+        verdict += "Video not found. "
+    if archived['comments']:
+        verdict += "(with comments)"
+    return verdict
+
+class FytSession:
+    session: aiohttp.ClientSession
+    locks: dict[type['BaseService'], asyncio.Lock]
+
+    @classmethod
+    def _get_services(cls) -> list[type['BaseService']]:
+        serviceClasses = BaseService.__subclasses__()
+        potentialServices = []
+        for sc in serviceClasses:
+            potentialServices.extend(sc.__subclasses__())
+        services = []
+        for potentialService in potentialServices:
+            if not potentialService.enabled():
+                continue
+            services.append(potentialService)
+        return services
+
+    @classmethod
+    async def new(cls, batching = False):
+        self = cls()
+        headers = {}
+        if user_agent:
+            headers["User-Agent"] = user_agent
+        self.session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=20), headers=headers)
+        self.locks = {}
+        return self
+
+    def head(self, *args, **kwargs):
+        return self.session.head(*args, **kwargs)
+
+    def get(self, *args, **kwargs):
+        return self.session.get(*args, **kwargs)
+
+    def post(self, *args, **kwargs):
+        return self.session.post(*args, **kwargs)
+
+    def get_lock(self, cls):
+        if cls not in self.locks:
+            self.locks[cls] = asyncio.Lock()
+        return self.locks[cls]
+
+    async def close(self):
+        """
+        Closes the FytSession and frees all associated resources.
+        It cannot be used again.
+        If there are still responses being generated, the effect is undefined.
+        """
+        await self.session.close()
+
+    async def _generateStream(self, id: str, includeRaw=False):
+        """
+        Runs all the Services but as a generator.
+        First item is a list of all the service names.
+        Following that, all future items are service results.
+        Then None will be provided to signal that all of the results have been sent.
+        Finally, the last item is a dict containing the verdict.
+        Arguments:
+            id (str): The video ID
+            includeRaw (bool): Whether or not to include the raw data in the `rawraw` field. If you don't need it, disable this.
+        """
+        if not self.verifyId(id):
+            raise InvalidVideoIdError(id)
+        keys = []
+        services = self._get_services()
+        coroutines = []
+        queue = asyncio.Queue(1)
+        done = asyncio.Event()
+
+        async def iterate(name, gen):
+            nonlocal taskCount
+            try:
+                async for i in gen:
+                    if isinstance(i, Link):
+                        i.classname = name
+                    await queue.put(i)
+            finally:
+                taskCount -= 1
+                if taskCount <= 0:
+                    done.set()
+
+        svcs = {}
+        for service in services:
+            svcs[service.__name__] = service.getName()
+            coroutines.append((service.__name__, service.run(id, self, includeRaw=includeRaw)))
+        taskCount = len(svcs)
+        coroutines = [asyncio.create_task(iterate(name, coro)) for name, coro in coroutines]
+        yield svcs
+
+        while not done.is_set() or not queue.empty():
+            done_task = asyncio.create_task(done.wait())
+            queue_task = asyncio.create_task(queue.get())
+            tasks = {done_task, queue_task}
+            done_tasks, tasks = await asyncio.wait(tasks, return_when = asyncio.FIRST_COMPLETED)
+            if queue_task in done_tasks:
+                retval = await queue_task
+                yield retval
+                if isinstance(retval, Service):
+                    keys.append(retval)
+            else:
+                queue_task.cancel()
+            done_task.cancel()
+
+        done_tasks, pending = await asyncio.wait(coroutines, timeout = 0)
+        assert not pending
+        yield None
+        any_comments_archived = any(map(lambda e : e.comments, keys))
+        any_metaonly_archived = any(map(lambda e : e.metaonly and e.archived, keys))
+        any_videos_archived = any(map(lambda e : e.archived and not e.metaonly, keys))
+        any_archived = {"video": any_videos_archived, "metaonly": any_metaonly_archived, "comments": any_comments_archived, "human_friendly": None}
+        verdict = create_verdict(any_archived)
+        any_archived['human_friendly'] = verdict
+        yield any_archived
+
+    async def generateStream(self, id: str, includeRaw=False):
+        gen = self._generateStream(id, includeRaw=includeRaw)
+        return StreamResponse(gen)
+
+    async def generate(self, id: str, includeRaw=False):
+        generator = await self.generateStream(id, includeRaw)
+        # ignore the list of names as that is redundant in this case
+        await anext(generator)
+        results = []
+        async for result in generator:
+            if isinstance(result, Link):
+                continue
+            if result is None:
+                # loop is over
+                break
+            results.append(result)
+        any_archived = await anext(generator)
+        return Response(id=id, status="ok", keys=results, verdict=any_archived)
+
+    @staticmethod
+    def verifyId(id: str) -> bool:
+        """
+        Checks if a video ID is valid.
+        """
+        return bool(re.match(r"^[A-Za-z0-9_-]{10}[AEIMQUYcgkosw048]$", id))
+
 @dataclasses.dataclass
-class Service(JSONDataclass):
+class BaseService(JSONDataclass):
     """
     The data parsed out of the server.
 
@@ -61,7 +213,7 @@ class Service(JSONDataclass):
             self.comments = any(map(lambda s : s.contains.comments, self.available))
 
     @classmethod
-    async def _run(cls, id, session: aiohttp.ClientSession) -> typing.AsyncGenerator:
+    async def _run(cls, id, session: FytSession) -> typing.AsyncGenerator:
         raise NotImplementedError("Subclass Service and impl the _run function")
         yield 0 # exists for type checkers
 
@@ -72,7 +224,7 @@ class Service(JSONDataclass):
         return serviceConfig['enabled']
 
     @classmethod
-    async def run(cls, id: str, session: aiohttp.ClientSession, includeRaw=True, **kwargs):
+    async def run(cls, id: str, session: FytSession, includeRaw=True, **kwargs):
         """
         Retrieves the data from the service.
         Arguments:
@@ -92,6 +244,7 @@ class Service(JSONDataclass):
                 yield i
         except Exception as ename: # pylint: disable=broad-except
             note = f"An error occured while retrieving data from {cls.getName()}."
+            traceback.print_exc()
             if "aiohttp" in str(type(ename)):
                 # Ugly temporary hack
                 rawraw = f"{type(ename)}"
@@ -135,7 +288,7 @@ class Service(JSONDataclass):
             service.available = None
         return service
 
-class YouTubeService(Service): # pylint: disable=abstract-method
+class Service(BaseService):
     pass
 
 class InvalidVideoIdError(ValueError):
@@ -158,7 +311,7 @@ API_VERSION = 5
 
 # Thin wrapper around a generator that allows us to define a `coerce_to_api_version` method,
 # just like with the non-streaming response type.
-class YouTubeStreamResponse:
+class StreamResponse:
     """
     A streamed response, as an iterable. It is not recommended to use the iterable directly;
     instead, write code around a specific API version and use `coerce_to_api_version` to ensure
@@ -259,20 +412,20 @@ class Link(JSONDataclass):
 
 
 @dataclasses.dataclass
-class YouTubeResponse(JSONDataclass):
+class Response(JSONDataclass):
     """
     A response from the server.
 
     Attributes:
         id (str): The interpreted video ID.
         status (str): bad.id if invalid ID.
-        keys (list[YouTubeService]): An array with all the server responses.
+        keys (list[Service]): An array with all the server responses.
         api_version (int): The API version. Breaking API changes are made by incrementing this.
         verdict (dict): The verdict of the response. Has video, metaonly, and comments field, that are set to true if any archive was found where that was saved. Also has human_friendly field that has a simple verdict that can be used by people.
     """
     id: str
     status: str
-    keys: list[YouTubeService]
+    keys: list[Service]
     verdict: dict
     api_version: int = API_VERSION
 
@@ -326,126 +479,6 @@ class YouTubeResponse(JSONDataclass):
             self.keys[index] = service
         return self
 
-    @classmethod
-    def _get_services(cls) -> list['Service']:
-        potentialServices = YouTubeService.__subclasses__()
-        services = []
-        for potentialService in potentialServices:
-            if not potentialService.enabled():
-                continue
-            services.append(potentialService)
-        return services
-
-    @staticmethod
-    def verifyId(id: str) -> bool:
-        """
-        Checks if a video ID is valid.
-        """
-        return bool(re.match(r"^[A-Za-z0-9_-]{10}[AEIMQUYcgkosw048]$", id))
-
-    @staticmethod
-    def create_verdict(archived: dict):
-        verdict = ""
-        if archived['video']:
-            verdict += "Archived! "
-        elif archived['metaonly']:
-            verdict += "Archived with metadata only. "
-        else:
-            verdict += "Video not found. "
-        if archived['comments']:
-            verdict += "(with comments)"
-        return verdict
-
-    @classmethod
-    async def _generateStream(cls, id: str, includeRaw=False):
-        """
-        Runs all the Services but as a generator.
-        First item is a list of all the service names.
-        Following that, all future items are service results.
-        Then None will be provided to signal that all of the results have been sent.
-        Finally, the last item is a dict containing the verdict.
-        Arguments:
-            id (str): The video ID
-            includeRaw (bool): Whether or not to include the raw data in the `rawraw` field. If you don't need it, disable this.
-        """
-        if not cls.verifyId(id):
-            raise InvalidVideoIdError(id)
-        keys = []
-        services = cls._get_services()
-        coroutines = []
-        headers = {}
-        queue = asyncio.Queue(1)
-        if user_agent:
-            headers["User-Agent"] = user_agent
-        done = asyncio.Event()
-
-        async def iterate(name, gen):
-            nonlocal taskCount
-            try:
-                async for i in gen:
-                    if isinstance(i, Link):
-                        i.classname = name
-                    await queue.put(i)
-            finally:
-                taskCount -= 1
-                if taskCount <= 0:
-                    done.set()
-
-        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=20), headers=headers) as session:
-            svcs = {}
-            for service in services:
-                svcs[service.__name__] = service.getName()
-                coroutines.append((service.__name__, service.run(id, session, includeRaw=includeRaw)))
-            taskCount = len(svcs)
-            coroutines = [asyncio.create_task(iterate(name, coro)) for name, coro in coroutines]
-            yield svcs
-
-            while not done.is_set() or not queue.empty():
-                done_task = asyncio.create_task(done.wait())
-                queue_task = asyncio.create_task(queue.get())
-                tasks = {done_task, queue_task}
-                done_tasks, tasks = await asyncio.wait(tasks, return_when = asyncio.FIRST_COMPLETED)
-                if queue_task in done_tasks:
-                    retval = await queue_task
-                    yield retval
-                    if isinstance(retval, Service):
-                        keys.append(retval)
-                else:
-                    queue_task.cancel()
-                done_task.cancel()
-
-            done_tasks, pending = await asyncio.wait(coroutines, timeout = 0)
-            assert not pending
-        yield None
-        any_comments_archived = any(map(lambda e : e.comments, keys))
-        any_metaonly_archived = any(map(lambda e : e.metaonly and e.archived, keys))
-        any_videos_archived = any(map(lambda e : e.archived and not e.metaonly, keys))
-        any_archived = {"video": any_videos_archived, "metaonly": any_metaonly_archived, "comments": any_comments_archived, "human_friendly": None}
-        verdict = cls.create_verdict(any_archived)
-        any_archived['human_friendly'] = verdict
-        yield any_archived
-
-    @classmethod
-    async def generateStream(cls, id: str, includeRaw=False):
-        gen = cls._generateStream(id, includeRaw=includeRaw)
-        return YouTubeStreamResponse(gen)
-
-    @classmethod
-    async def generate(cls, id: str, includeRaw=False):
-        generator = await cls.generateStream(id, includeRaw)
-        # ignore the list of names as that is redundant in this case
-        await anext(generator)
-        results = []
-        async for result in generator:
-            if isinstance(result, Link):
-                continue
-            if result is None:
-                # loop is over
-                break
-            results.append(result)
-        any_archived = await anext(generator)
-        return cls(id=id, status="ok", keys=results, verdict=any_archived)
-
     def __str__(self):
         services = "Services:\n"
         for i in self.keys:
@@ -454,8 +487,4 @@ class YouTubeResponse(JSONDataclass):
 {services}"""
         return string
 
-# TODO: Refactor Response a lot into a more generic thing,
-# then make YouTubeResponse the same thing but specifying the keys
-# and also specifying the subclasses to search
-
-YouTubeResponse.__doc__ = YouTubeResponse.__doc__.replace("%s", str(YouTubeResponse.api_version))
+Response.__doc__ = Response.__doc__.replace("%s", str(Response.api_version))
