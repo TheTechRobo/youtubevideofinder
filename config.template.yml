@@ -38,18 +38,25 @@ methods:
     enabled: true
 
   filmot:
+    # This is not the RapidAPI endpoint.
     title: Filmot
     enabled: false
     api_key:
 
+  # Playboard's ratelimits are currently 1 per day, which is ridiculous, hence why this is disabled by default.
+  # If anyone is actually paying money for a Playboard account, I would accept a PR to add login support, but I can't test it myself.
   playboard_co:
     title: Playboard.co
     enabled: false
     user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.%s.0.0 Safari/537.36"
 
   removededm:
-    title: Removed.edm
-    enabled: true
+    title: RemovedEDM
+    enabled: false
+    # These are not account usernames. Use Special:BotPasswords.
+    # Only basic rights are necessary.
+    username: null
+    password: null
 
   odysee:
     title: Odysee

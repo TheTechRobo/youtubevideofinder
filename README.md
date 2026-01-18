@@ -1,10 +1,10 @@
-# youtubevideofinder
+# FindYouTubeVideo
 Searches through various places for archived YouTube content.
 
 Contributions are welcome!
 
 ## Usage as a module
-There are docstrings included in the module (it is contained in `youtubevideofinder`), but no `setup.py` or PyPI package is currently included. This is because it is not yet 100% stable, and the API still isn't great.
+There are docstrings included in the module (it is contained in `findyoutubevideo`), but no `setup.py` or PyPI package is currently included. This is because it is not yet 100% stable, and the API still isn't great.
 
 ## Frontend
 ### Running in Docker (recommended):
@@ -41,6 +41,8 @@ methods:
     enabled: true
 ...
 ```
+
+Some scrapers require further configuration (typically authentication) and are disabled by default.
 
 ## Contributing
 
