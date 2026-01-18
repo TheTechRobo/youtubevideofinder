@@ -579,6 +579,7 @@ class removededm(Service):
             async with session.post(cls.endpoint, data = login_request_params) as response:
                 j = await response.json()
                 if j['login']['result'] != "Success":
+                    print("Login failure for removededm", j, flush = True)
                     raise RuntimeError("Login failure")
 
 class Filmot(Service):
