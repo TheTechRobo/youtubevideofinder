@@ -548,11 +548,11 @@ class removededm(Service):
             if normalized_page['to'] in pages:
                 pages.add(normalized_page['from'])
         for files, args in potential_files:
-            if args['contains'].video:
-                got_video = True
             for file in files:
                 if file in pages:
                     archived = True
+                    if args['contains'].video:
+                        got_video = True
                     yield Link(url = f"https://removededm.com/{file}", **args)
 
         yield cls(
