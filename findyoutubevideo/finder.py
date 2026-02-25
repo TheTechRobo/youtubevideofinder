@@ -749,6 +749,8 @@ class PreserveTube(Service):
         # keep any pre-existing headers but patch in "Accept"
         headers = session.session.headers.copy()
         headers.update({"Accept": "application/json"})
+        note = cls.note
+        metaonly = False
 
         async with session.get(url, headers=headers) as resp:
             json = await resp.json()
@@ -762,15 +764,26 @@ class PreserveTube(Service):
             assert "title" in json
             archived = True
             available = f"https://preservetube.com/watch?v={id}"
-            yield Link(
-                url = available,
-                contains = LinkContains(video = True, thumbnail = True, metadata = True),
-                title = "Video"
-            )
+            deletion_stage = json['deletion_stage']
+            if deletion_stage in ("soft_delete", "pending_delete"):
+                note = "⚠️ This video is pending deletion! Please contact the site owner ASAP if you have concerns."
+            if deletion_stage == "deleted":
+                metaonly = True
+                yield Link(
+                    url = available,
+                    contains = LinkContains(thumbnail = True, metadata = True),
+                    title = "Metadata",
+                )
+            else:
+                yield Link(
+                    url = available,
+                    contains = LinkContains(video = True, thumbnail = True, metadata = True),
+                    title = "Video",
+                )
         yield cls(
                 archived=archived, lastupdated=lastupdated,
-                name=cls.getName(), note=cls.note,
-                rawraw=None, metaonly=False, classname=cls.__name__
+                name=cls.getName(), note=note,
+                rawraw=None, metaonly=metaonly, classname=cls.__name__
         )
 
 class NyaneOnline(Service):
