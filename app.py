@@ -102,10 +102,9 @@ def coerce_to_id(vid):
 
 def get_enabled_methods():
     titles = []
-    for key in config_yml["methods"]:
-        method = config_yml["methods"][key]
-        if method["enabled"]:
-            titles.append(method["title"])
+    for service in findyoutubevideo.types.registry.get_services():
+        if service.enabled():
+            titles.append(config_yml['methods'][service.configId]['title'])
     return titles
 
 @app.route("/noscript_load.html")

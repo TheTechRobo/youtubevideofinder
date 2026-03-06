@@ -46,7 +46,7 @@ Some scrapers require further configuration (typically authentication) and are d
 
 ## Contributing
 
-If creating a new scraper, just make a new class in the finder.py file, and update the example config file.
+If creating a new scraper, just make a new class in the finder.py file, and update the example config file. Ensure you register it with the proper type (the `@registry.something`) line. Take a look at the other classes for all the somethings.
 
 Scrapers should try to yield the best or near-best link first, for best compatibility with APIv4 and lower.
 

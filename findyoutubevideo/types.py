@@ -3,6 +3,7 @@ The classes that are used to store the response data.
 """
 import copy
 import dataclasses
+import enum
 import time
 import typing_extensions as typing
 import re
@@ -40,16 +41,8 @@ class FytSession:
 
     @classmethod
     def _get_services(cls) -> list[type['BaseService']]:
-        serviceClasses = BaseService.__subclasses__()
-        potentialServices = []
-        for sc in serviceClasses:
-            potentialServices.extend(sc.__subclasses__())
-        services = []
-        for potentialService in potentialServices:
-            if not potentialService.enabled():
-                continue
-            services.append(potentialService)
-        return services
+        potentialServices = registry.get_services()
+        return [service for service in potentialServices if service.enabled()]
 
     @classmethod
     async def new(cls, batching = False):
@@ -488,3 +481,43 @@ class Response(JSONDataclass):
         return string
 
 Response.__doc__ = Response.__doc__.replace("%s", str(Response.api_version))
+
+class ServiceCategory(enum.Enum):
+    YOUTUBE = enum.auto()
+    IA = enum.auto()
+    MISC = enum.auto()
+    PUBLIC_ARCHIVES = enum.auto()
+    ON_REQUEST = enum.auto()
+    METADATA = enum.auto()
+
+class ServiceRegistry:
+    services: dict[ServiceCategory, list[Service]]
+
+    def __init__(self):
+        self.services = {k: [] for k in ServiceCategory}
+
+    def add_service(self, category: ServiceCategory, service: Service):
+        self.services[category].append(service)
+
+    def get_services(self):
+        print(self.services)
+        return [j for i in self.services.values() for j in i]
+
+    def youtube(self, service: Service):
+        self.add_service(ServiceCategory.YOUTUBE, service)
+
+    def ia(self, service: Service):
+        self.add_service(ServiceCategory.IA, service)
+
+    def misc(self, service: Service):
+        self.add_service(ServiceCategory.MISC, service)
+
+    def public_archives(self, service: Service):
+        self.add_service(ServiceCategory.PUBLIC_ARCHIVES, service)
+
+    def on_request(self, service: Service):
+        self.add_service(ServiceCategory.ON_REQUEST, service)
+
+    def metadata(self, service: Service):
+        self.add_service(ServiceCategory.METADATA, service)
+registry = ServiceRegistry()

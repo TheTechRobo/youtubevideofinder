@@ -4,7 +4,7 @@ All the Service implementations live here.
 
 import random, time, aiohttp, asyncio
 import typing_extensions as typing
-from .types import FytSession, Link, LinkContains, Service, methods, experiment_base_url
+from .types import FytSession, Link, LinkContains, Service, methods, experiment_base_url, registry
 from yarl import URL
 
 async def submit_experiment(session: FytSession, experiment_name: str, video_id: str, **report):
@@ -18,6 +18,7 @@ async def submit_experiment(session: FytSession, experiment_name: str, video_id:
         except Exception:
             pass
 
+@registry.youtube
 class YouTube(Service):
     """
     Checks if the video is still available on YouTube.
@@ -58,6 +59,7 @@ class YouTube(Service):
         )
 
 
+@registry.ia
 class WaybackMachine(Service):
     name = methods["ia_wayback"]["title"]
     configId = "ia_wayback"
@@ -208,6 +210,7 @@ class WaybackMachine(Service):
         )
 
 
+@registry.ia
 class ArchiveOrgDetails(Service):
     name = methods["ia_details"]["title"]
     configId = "ia_details"
@@ -270,6 +273,7 @@ class ArchiveOrgDetails(Service):
         )
 
 
+@registry.ia
 class ArchiveOrgCDX(Service):
     """
     Queries the Archive.org CDX for an archived video thumb
@@ -340,6 +344,7 @@ class ArchiveOrgCDX(Service):
         )
 
 
+@registry.misc
 class GhostArchive(Service):
     name = methods["ghostarchive"]["title"]
     configId = "ghostarchive"
@@ -373,6 +378,7 @@ class GhostArchive(Service):
             metaonly=False, classname=cls.__name__
         )
 
+@registry.on_request
 class HackintYa(Service):
     name = methods["hackint_ya"]["title"]
     note = ("Video retrieval is currently not available for technical reasons. "
@@ -410,6 +416,7 @@ class HackintYa(Service):
         )
 
 
+@registry.on_request
 class DistributedYoutubeArchive(Service):
     name = methods['distributed_youtube_archive']['title']
     configId = "distributed_youtube_archive"
@@ -450,6 +457,7 @@ class DistributedYoutubeArchive(Service):
             classname=cls.__name__
         )
 
+@registry.public_archives
 class Hobune(Service):
     name = methods["hobune_stream"]["title"]
     configId = "hobune_stream"
@@ -498,6 +506,7 @@ class Hobune(Service):
             note="", rawraw=raw, metaonly=False, classname=cls.__name__
         )
 
+@registry.public_archives
 class removededm(Service):
     name = methods["removededm"]["title"]
     configId = "removededm"
@@ -594,6 +603,7 @@ class removededm(Service):
                     print("Login failure for removededm", j, flush = True)
                     raise RuntimeError("Login failure")
 
+@registry.metadata
 class Filmot(Service):
     name = methods["filmot"]["title"]
     lastretrieved: int = 0
@@ -627,6 +637,7 @@ class Filmot(Service):
                 classname=cls.__name__
         )
 
+@registry.metadata
 class Playboard(Service):
     """
     Playboard is metadata-only as far as I know.
@@ -666,6 +677,7 @@ class Playboard(Service):
                 classname=cls.__name__
         )
 
+@registry.public_archives
 class AltCensored(Service):
     """
     altCensored does not store any videos. Instead, it links to archived versions.
@@ -697,6 +709,7 @@ class AltCensored(Service):
                 rawraw=None, metaonly=False, classname=cls.__name__
         )
 
+@registry.misc
 class Odysee(Service):
     """
     Queries the LBRY YouTube Sync API to find out whether the video has been mirrored to Odysee.
@@ -737,6 +750,7 @@ class Odysee(Service):
             classname=cls.__name__
         )
 
+@registry.public_archives
 class PreserveTube(Service):
     name = methods["preservetube"]["title"]
     note = ""
@@ -786,6 +800,7 @@ class PreserveTube(Service):
                 rawraw=None, metaonly=metaonly, classname=cls.__name__
         )
 
+@registry.public_archives
 class NyaneOnline(Service):
     name = methods['nyaneonline']['title']
     note = ""
@@ -816,6 +831,7 @@ class NyaneOnline(Service):
                    rawraw=None, metaonly=False, classname=cls.__name__
         )
 
+@registry.metadata
 class LetsPlayIndex(Service):
     name = methods['letsplayindex']['title']
     note = ""
