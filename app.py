@@ -141,6 +141,9 @@ async def load_thing():
     ))
     return await render_template("noscript/fid.j2", resp=t, list=list, asd=dataclasses.asdict)
 
+head_insertion = findyoutubevideo.types.config_yml.get("additional_head")
+body_insertion = findyoutubevideo.types.config_yml.get("additional_body")
+
 @app.route("/")
 async def index():
     """
@@ -159,7 +162,9 @@ async def index():
         default=default,
         default_id=default_id,
         methods=get_enabled_methods(),
-        absolute_url=absolute_url
+        absolute_url=absolute_url,
+        head_insertion=head_insertion,
+        body_insertion=body_insertion,
     )
 
 # The following code should be taken out and shot

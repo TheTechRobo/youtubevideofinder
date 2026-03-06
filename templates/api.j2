@@ -1,14 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>API Documentation - YouTube Video Archive Search</title>
-    <script defer data-domain="findyoutubevideo.thetechrobo.ca"
-            src="https://analytic.thetechrobo.ca/js/script.js"></script>
+    <title>API Documentation | YouTube Video Finder</title>
     <link rel="shortcut icon"
           href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAIZJREFUOE+l0tENgCAMBNDrQroXA7GXLnSGxiZYaADpp6GPa1GwWbLZjxC4Emj4meNzDVAaew3R9wYgQJCAtOEEbZLPqXLLkQEFrCroToBPNwYK9CLrgBtjCJTLdAdBDXdgfX7j0QvodDM/EkmKdJ5lFtDRAmQqgaXsIUtAL8ky4JFfQL34BxrdPhGLmIGXAAAAAElFTkSuQmCC">
     <link href="/static/normalize.css" rel="stylesheet">
     <link href="/static/skeleton.css" rel="stylesheet">
     <link href="/static/styles.css" rel="stylesheet">
+    {% if head_insertion %}
+        {{ head_insertion|safe }}
+    {% endif %}
 </head>
 <body>
 <div class="container" id="header-section">
@@ -24,7 +25,7 @@
 <div class="container">
     <div class="banner">
         If you're running into rate limits or otherwise need help, please contact me!
-        You can try Discord (username: thetechrobo), IRC (TheTechRobo on hackint, libera.chat, and OFTC), or email (thetechrobo@proton.me).
+        You can try IRC (TheTechRobo on hackint, libera.chat, and OFTC) or email (thetechrobo@proton.me).
     </div>
     <br>
     <h4>API Documentation</h4>

@@ -91,3 +91,8 @@ user_agent: "FindYoutubeVideo/1.0 operated by XYZ"
 # Your IP address WILL NOT be associated with the report.
 # Current list of experiments is in EXPERIMENTS.txt.
 experiment_base_url: "https://fyt-helper.thetechrobo.ca/experiment"
+
+# Allows you to insert HTML after "How do I use this?" or at the end of the <head> block.
+additional_head:
+additional_body:
+
