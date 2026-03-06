@@ -126,7 +126,6 @@ function finish(vid1) {
     const submitBtn = getSubmitBtn();
     const videoInput = getVideoInput();
 
-    plausible("FormSubmit");
     let vid = vid1.replace(/\s/g, "");
     if (!isValidVideoId(vid)) {
         let newVid = getVideoId(vid);
