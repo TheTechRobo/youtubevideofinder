@@ -500,7 +500,6 @@ class ServiceRegistry:
         self.services[category].append(service)
 
     def get_services(self):
-        print(self.services)
         return [j for i in self.services.values() for j in i]
 
     def youtube(self, service: Service):
