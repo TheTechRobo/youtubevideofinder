@@ -6,6 +6,7 @@ import random, time, aiohttp, asyncio
 import typing_extensions as typing
 from .types import FytSession, Link, LinkContains, Service, methods, experiment_base_url, registry
 from yarl import URL
+import wikitextparser
 
 async def submit_experiment(session: FytSession, experiment_name: str, video_id: str, **report):
     if experiment_base_url:
@@ -515,7 +516,7 @@ class removededm(Service):
     @classmethod
     async def _run(cls, id, session: FytSession):
         got_video = False
-        potential_video_links = (f"https://removededm.com/File:{id}.mp4", f"https://removededm.com/File:{id}.webm")
+        got_page = False
         potential_image_extensions = ("jpg", "png", "webp")
         potential_files = (
             ([f"{id}"], dict(contains = LinkContains(metadata = True), title = "Metadata")),
@@ -559,10 +560,39 @@ class removededm(Service):
         for files, args in potential_files:
             for file in files:
                 if file in pages:
+                    if file == id:
+                        # Main wiki page was found
+                        got_page = True
                     archived = True
                     if args['contains'].video:
                         got_video = True
                     yield Link(url = f"https://removededm.com/{file}", **args)
+
+        if got_page:
+            api_request = {
+                "action": "parse",
+                "format": "json",
+                "page": id,
+                "prop": "wikitext",
+                "formatversion": "2",
+            }
+            async with session.get(cls.endpoint, params = api_request) as response:
+                j = await response.json()
+                if "error" in j and j['error'].get("code") == "readapidenied":
+                    await cls.login(session)
+                    async with session.get(cls.endpoint, params = api_request) as response:
+                        j = await response.json()
+                if "error" in j:
+                    raise RuntimeError("API error 2")
+            wikitext = j['parse']['wikitext']
+            parsed = wikitextparser.parse(wikitext)
+            for template in parsed.templates:
+                if reupload := template.get_arg("reuploadid"):
+                    yield Link("https://youtube.com/watch?v=" + reupload.value, LinkContains(video = True), title = "Reupload")
+                    got_video = True
+                if videofile2 := template.get_arg("videofile2"):
+                    yield Link("https://archive.org/details/" + videofile2.value, LinkContains(video = True), title = "Video")
+                    got_video = True
 
         yield cls(
             archived=archived, rawraw=rawraw, metaonly=not got_video,

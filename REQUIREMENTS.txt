@@ -5,3 +5,4 @@ requests
 click
 pyyaml
 typing_extensions
+wikitextparser
