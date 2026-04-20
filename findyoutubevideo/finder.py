@@ -575,6 +575,7 @@ class removededm(Service):
                 "page": id,
                 "prop": "wikitext",
                 "formatversion": "2",
+                "redirects": 1,
             }
             async with session.get(cls.endpoint, params = api_request) as response:
                 j = await response.json()
@@ -587,9 +588,12 @@ class removededm(Service):
             wikitext = j['parse']['wikitext']
             parsed = wikitextparser.parse(wikitext)
             for template in parsed.templates:
+                if template.name.strip() != "PageAutoFill":
+                    continue
                 if reupload := template.get_arg("reuploadid"):
-                    yield Link("https://youtube.com/watch?v=" + reupload.value, LinkContains(video = True), title = "Reupload")
-                    got_video = True
+                    if reupload.value.strip().lower() != "forbidden":
+                        yield Link("https://youtube.com/watch?v=" + reupload.value, LinkContains(video = True), title = "Reupload")
+                        got_video = True
                 if videofile2 := template.get_arg("videofile2"):
                     yield Link("https://archive.org/details/" + videofile2.value, LinkContains(video = True), title = "Video")
                     got_video = True
