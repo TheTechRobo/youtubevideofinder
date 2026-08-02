@@ -588,7 +588,7 @@ class removededm(Service):
             wikitext = j['parse']['wikitext']
             parsed = wikitextparser.parse(wikitext)
             for template in parsed.templates:
-                if template.name.strip() != "PageAutoFill":
+                if template.name.strip() != "video":
                     continue
                 if reupload := template.get_arg("reuploadid"):
                     if reupload.value.strip().lower() != "forbidden":
