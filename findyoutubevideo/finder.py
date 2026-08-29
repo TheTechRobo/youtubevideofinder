@@ -214,6 +214,7 @@ class WaybackMachine(Service):
 @registry.ia
 class ArchiveOrgDetails(Service):
     name = methods["ia_details"]["title"]
+    helper = methods["ia_details"].get("helper") or "https://fyt-helper.thetechrobo.ca"
     configId = "ia_details"
     items_tried = [
         "youtube-%s",
@@ -245,22 +246,20 @@ class ArchiveOrgDetails(Service):
         rawraw = responses
         note = ""
 
-        # Helper source code is at endpoint /source_code
-        helper_url = f"https://fyt-helper.thetechrobo.ca/ia_extra/{id}"
-        async with session.get(helper_url) as resp:
+        helper_url = f"{cls.helper.rstrip('/')}/ia_extra/{id}"
+        async with session.get(helper_url, params = {"multi": "true"}) as resp:
             if resp.status == 200:
-                archived = True
                 j = await resp.json()
-                lien = f"https://archive.org/details/{j['item']}"
                 lnote = "This is a generic channel item. It may contain multiple videos."
-                yield Link(
-                    url = lien,
-                    contains = LinkContains(True, True, True, True, True),
-                    title = "Item",
-                    note = lnote,
-                )
-            elif resp.status == 404:
-                pass
+                for item in j:
+                    archived = True
+                    lien = f"https://archive.org/details/{item['item']}"
+                    yield Link(
+                        url = lien,
+                        contains = LinkContains(True, True, True, True, True),
+                        title = "Item",
+                        note = lnote,
+                    )
             else:
                 raise AssertionError("fyt-helper check failed")
 

@@ -14,6 +14,11 @@ methods:
   ia_details:
     title: Archive.org Details
     enabled: true
+    # This is a helper tool that indexes some IA items that can't
+    # be found through the typical URL formats.
+    # If no base URL is specified, https://fyt-helper.thetechrobo.ca/ will be used.
+    # (Source code can be found at /source_code on that host.)
+    helper:
 
   ia_cdx:
     title: Archive.org CDX
