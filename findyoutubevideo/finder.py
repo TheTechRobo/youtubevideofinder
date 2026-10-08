@@ -510,7 +510,7 @@ class Hobune(Service):
 class removededm(Service):
     name = methods["removededm"]["title"]
     configId = "removededm"
-    endpoint = "https://removededm.com/w/api.php"
+    endpoint = "https://removededm.com/api.php"
 
     @classmethod
     async def _run(cls, id, session: FytSession):
@@ -542,10 +542,6 @@ class removededm(Service):
         }
         async with session.get(cls.endpoint, params = api_request) as response:
             j = await response.json()
-            if "error" in j and j['error'].get("code") == "readapidenied":
-                await cls.login(session)
-                async with session.get(cls.endpoint, params = api_request) as response:
-                    j = await response.json()
             if "error" in j:
                 raise RuntimeError("API error")
 
@@ -578,10 +574,6 @@ class removededm(Service):
             }
             async with session.get(cls.endpoint, params = api_request) as response:
                 j = await response.json()
-                if "error" in j and j['error'].get("code") == "readapidenied":
-                    await cls.login(session)
-                    async with session.get(cls.endpoint, params = api_request) as response:
-                        j = await response.json()
                 if "error" in j:
                     raise RuntimeError("API error 2")
             wikitext = j['parse']['wikitext']
@@ -601,40 +593,6 @@ class removededm(Service):
             archived=archived, rawraw=rawraw, metaonly=not got_video,
             error=None, lastupdated=time.time(), name=cls.getName(), note="", classname=cls.__name__
         )
-
-    @classmethod
-    async def login(cls, session: FytSession):
-        # Need to set up proper debug logging.
-        print("Logging into removededm", flush = True)
-        username = methods[cls.configId]['username']
-        password = methods[cls.configId]['password']
-        # Get a lockso we don't log in multiple times at once
-        async with session.get_lock(cls):
-            # What's wrong with just including an API key in every request? :(
-            token_request_params = {
-                "action": "query",
-                "format": "json",
-                "meta": "tokens",
-                "type": "login",
-                "formatversion": "2",
-            }
-            async with session.get(cls.endpoint, params = token_request_params) as response:
-                j = await response.json()
-                token = j['query']['tokens']['logintoken']
-
-            login_request_params = {
-                "action": "login",
-                "format": "json",
-                "formatversion": "2",
-                "lgname": username,
-                "lgpassword": password,
-                "lgtoken": token,
-            }
-            async with session.post(cls.endpoint, data = login_request_params) as response:
-                j = await response.json()
-                if j['login']['result'] != "Success":
-                    print("Login failure for removededm", j, flush = True)
-                    raise RuntimeError("Login failure")
 
 @registry.metadata
 class Filmot(Service):
