@@ -57,11 +57,8 @@ methods:
 
   removededm:
     title: RemovedEDM
+    # You will need an IP whitelist from Cloudflare Turnstile.
     enabled: false
-    # These are not account usernames. Use Special:BotPasswords.
-    # Only basic rights are necessary.
-    username: null
-    password: null
 
   odysee:
     title: Odysee
