@@ -516,10 +516,9 @@ class removededm(Service):
     async def _run(cls, id, session: FytSession):
         got_video = False
         got_page = False
-        potential_image_extensions = ("jpg", "png", "webp")
+        potential_image_extensions = ("jpg", "png", "webp", "avif")
         potential_files = (
             ([f"{id}"], dict(contains = LinkContains(metadata = True), title = "Metadata")),
-            ([f"File:{id}.mp4", f"File:{id}.webm"], dict(contains = LinkContains(video = True), title = "Video")),
             ([f"File:{id}.{ext}" for ext in potential_image_extensions], dict(
                 contains = LinkContains(thumbnail = True),
                 title = "Thumbnail"
@@ -559,8 +558,6 @@ class removededm(Service):
                         # Main wiki page was found
                         got_page = True
                     archived = True
-                    if args['contains'].video:
-                        got_video = True
                     yield Link(url = f"https://removededm.com/{file}", **args)
 
         if got_page:
