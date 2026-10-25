@@ -595,7 +595,7 @@ class removededm(Service):
 class Filmot(Service):
     name = methods["filmot"]["title"]
     lastretrieved: int = 0
-    cooldown: int = 2
+    cooldown: int = 0.5
     configId = "filmot"
 
     @classmethod
